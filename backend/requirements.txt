@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+python-multipart
+pyjwt
+onnxruntime
+pillow
+numpy
+# tests
+httpx
+pytest

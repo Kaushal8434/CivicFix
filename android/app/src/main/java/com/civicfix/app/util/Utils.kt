@@ -124,5 +124,61 @@ object Maps {
     }
 }
 
+data class Place(val label: String, val lat: Double, val lng: Double)
+
+/**
+ * Address search ("type the address") and reverse geocoding ("which address is under the pin").
+ * Uses Android's built-in Geocoder (Google's service on most phones, no API key);
+ * falls back to OpenStreetMap Nominatim when the phone has no geocoder.
+ * Call from a background thread – both functions do network I/O.
+ */
+object Geo {
+    @Suppress("DEPRECATION")
+    fun search(context: Context, query: String): List<Place> {
+        if (query.isBlank()) return emptyList()
+        if (android.location.Geocoder.isPresent()) {
+            runCatching {
+                android.location.Geocoder(context, Locale.getDefault()).getFromLocationName(query, 5)
+                    ?.filter { it.hasLatitude() && it.hasLongitude() }
+                    ?.map { Place(addressLine(it) ?: query, it.latitude, it.longitude) }
+            }.getOrNull()?.takeIf { it.isNotEmpty() }?.let { return it }
+        }
+        return nominatim("search?format=jsonv2&limit=5&q=" + Uri.encode(query))?.let { arr ->
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                Place(o.optString("display_name", query), o.getString("lat").toDouble(), o.getString("lon").toDouble())
+            }
+        }.orEmpty()
+    }
+
+    @Suppress("DEPRECATION")
+    fun reverse(context: Context, lat: Double, lng: Double): String? {
+        if (android.location.Geocoder.isPresent()) {
+            runCatching {
+                android.location.Geocoder(context, Locale.getDefault()).getFromLocation(lat, lng, 1)?.firstOrNull()?.let(::addressLine)
+            }.getOrNull()?.let { return it }
+        }
+        return runCatching {
+            val url = java.net.URL("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lng")
+            val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
+                setRequestProperty("User-Agent", "CivicFix/1.2 (academic prototype)")
+                connectTimeout = 10_000; readTimeout = 10_000
+            }
+            org.json.JSONObject(conn.inputStream.bufferedReader().readText()).optString("display_name").takeIf { it.isNotBlank() }
+        }.getOrNull()
+    }
+
+    private fun nominatim(path: String): org.json.JSONArray? = runCatching {
+        val conn = (java.net.URL("https://nominatim.openstreetmap.org/$path").openConnection() as java.net.HttpURLConnection).apply {
+            setRequestProperty("User-Agent", "CivicFix/1.2 (academic prototype)")
+            connectTimeout = 10_000; readTimeout = 10_000
+        }
+        org.json.JSONArray(conn.inputStream.bufferedReader().readText())
+    }.getOrNull()
+
+    private fun addressLine(a: android.location.Address): String? =
+        (0..a.maxAddressLineIndex).mapNotNull { a.getAddressLine(it) }.joinToString(", ").takeIf { it.isNotBlank() }
+}
+
 fun formatDate(ms: Long): String = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(ms))
 fun formatDay(ms: Long): String = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(ms))

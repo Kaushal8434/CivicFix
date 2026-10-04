@@ -25,3 +25,9 @@ ml/data/synthetic/
 ml/output/*.pt
 ml/output/*.onnx
 ml/output/clean_log.txt
+
+# Backend runtime data (database, secret key, uploaded photos/videos)
+backend/data/
+.pytest_cache/
+ml/output/download_log.txt
+ml/output/web_drainage_log.txt

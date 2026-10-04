@@ -1,56 +1,56 @@
 {
   "model": "mobilenet_v3_large (ImageNet) fine-tuned",
   "data": "data\\clean",
-  "train_real": 5917,
+  "train_real": 8104,
   "train_synthetic": 0,
-  "val": 967,
-  "test": 1210,
-  "best_val_macro_f1": 0.7877,
-  "test_accuracy": 0.8446,
-  "test_macro_f1": 0.7738,
-  "temperature": 0.815,
-  "confident_share": 0.94,
-  "confident_accuracy": 0.8761,
+  "val": 1326,
+  "test": 1657,
+  "best_val_macro_f1": 0.8094,
+  "test_accuracy": 0.8509,
+  "test_macro_f1": 0.7925,
+  "temperature": 0.773,
+  "confident_share": 0.947,
+  "confident_accuracy": 0.8834,
   "per_class": {
     "pothole_road_damage": {
-      "precision": 0.893,
-      "recall": 0.929,
-      "test_images": 323
+      "precision": 0.928,
+      "recall": 0.915,
+      "test_images": 353
     },
     "streetlight": {
-      "precision": 0.964,
-      "recall": 0.961,
-      "test_images": 279
+      "precision": 0.925,
+      "recall": 0.944,
+      "test_images": 338
     },
     "water_leakage": {
-      "precision": 0.75,
-      "recall": 0.444,
-      "test_images": 54
+      "precision": 0.682,
+      "recall": 0.545,
+      "test_images": 55
     },
     "drainage": {
-      "precision": 0.735,
-      "recall": 0.621,
-      "test_images": 58
+      "precision": 0.898,
+      "recall": 0.873,
+      "test_images": 353
     },
     "garbage": {
-      "precision": 0.778,
-      "recall": 0.84,
-      "test_images": 100
+      "precision": 0.872,
+      "recall": 0.8,
+      "test_images": 145
     },
     "road_blockage": {
-      "precision": 0.676,
-      "recall": 0.71,
-      "test_images": 100
+      "precision": 0.586,
+      "recall": 0.731,
+      "test_images": 93
     },
     "damaged_infrastructure": {
-      "precision": 0.775,
-      "recall": 0.843,
-      "test_images": 204
+      "precision": 0.752,
+      "recall": 0.783,
+      "test_images": 221
     },
     "other": {
-      "precision": 0.838,
-      "recall": 0.728,
-      "test_images": 92
+      "precision": 0.745,
+      "recall": 0.737,
+      "test_images": 99
     }
   }
 }

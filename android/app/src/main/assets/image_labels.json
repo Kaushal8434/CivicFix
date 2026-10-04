@@ -22,19 +22,19 @@
   ],
   "layout": "NCHW",
   "resize": "squash",
-  "test_accuracy": 0.8446,
-  "test_macro_f1": 0.7738,
-  "test_images": 1210,
-  "train_images": 5917,
-  "temperature": 0.815,
+  "test_accuracy": 0.8509,
+  "test_macro_f1": 0.7925,
+  "test_images": 1657,
+  "train_images": 8104,
+  "temperature": 0.773,
   "per_class_recall": {
-    "pothole_road_damage": 0.929,
-    "streetlight": 0.961,
-    "water_leakage": 0.444,
-    "drainage": 0.621,
-    "garbage": 0.84,
-    "road_blockage": 0.71,
-    "damaged_infrastructure": 0.843,
-    "other": 0.728
+    "pothole_road_damage": 0.915,
+    "streetlight": 0.944,
+    "water_leakage": 0.545,
+    "drainage": 0.873,
+    "garbage": 0.8,
+    "road_blockage": 0.731,
+    "damaged_infrastructure": 0.783,
+    "other": 0.737
   }
 }

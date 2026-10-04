@@ -1,65 +1,61 @@
 ﻿data: C:\Users\DELL\OneDrive\Desktop\STUDY\CivicFix\ml\data\clean
-train=5917 (real 5917, synthetic 0)  val=967  test=1210
+train=8104 (real 8104, synthetic 0)  val=1326  test=1657
 per class (train/val/test):
-  pothole_road_damage       1574   258   323
-  streetlight               1364   223   279
-  water_leakage              269    43    54
-  drainage                   287    46    58
-  garbage                    488    80   100
-  road_blockage              488    80   100
-  damaged_infrastructure     994   163   204
-  other                      453    74    92
-epoch  1  loss 1.7266  val_acc 0.694  val_macroF1 0.574  *best*
-epoch  2  loss 1.2192  val_acc 0.755  val_macroF1 0.671  *best*
-epoch  3  loss 1.0376  val_acc 0.776  val_macroF1 0.693  *best*
-epoch  4  loss 0.8908  val_acc 0.795  val_macroF1 0.722  *best*
-epoch  5  loss 0.8307  val_acc 0.808  val_macroF1 0.737  *best*
-epoch  6  loss 0.7657  val_acc 0.800  val_macroF1 0.735
-epoch  7  loss 0.7434  val_acc 0.815  val_macroF1 0.736
-epoch  8  loss 0.6926  val_acc 0.819  val_macroF1 0.754  *best*
-epoch  9  loss 0.6802  val_acc 0.825  val_macroF1 0.749
-epoch 10  loss 0.6596  val_acc 0.817  val_macroF1 0.746
-epoch 11  loss 0.6413  val_acc 0.817  val_macroF1 0.738
-epoch 12  loss 0.6185  val_acc 0.820  val_macroF1 0.762  *best*
-epoch 13  loss 0.6131  val_acc 0.831  val_macroF1 0.773  *best*
-epoch 14  loss 0.6054  val_acc 0.826  val_macroF1 0.763
-epoch 15  loss 0.5976  val_acc 0.822  val_macroF1 0.751
-epoch 16  loss 0.5913  val_acc 0.843  val_macroF1 0.788  *best*
-epoch 17  loss 0.5815  val_acc 0.839  val_macroF1 0.771
-epoch 18  loss 0.5768  val_acc 0.836  val_macroF1 0.768
-epoch 19  loss 0.5693  val_acc 0.836  val_macroF1 0.761
-epoch 20  loss 0.5645  val_acc 0.835  val_macroF1 0.763
-epoch 21  loss 0.5573  val_acc 0.840  val_macroF1 0.770
-epoch 22  loss 0.5607  val_acc 0.838  val_macroF1 0.767
-epoch 23  loss 0.5639  val_acc 0.842  val_macroF1 0.773
-epoch 24  loss 0.5668  val_acc 0.839  val_macroF1 0.767
-epoch 25  loss 0.5568  val_acc 0.837  val_macroF1 0.767
-python.exe : C:\Users\DELL\OneDrive\Desktop\STUDY\CivicFix\ml\03_train_image_classifier.py:122: UserWarning: 
-Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
-At line:1 char:365
-+ ... ivicFix\ml; & .venv\Scripts\python.exe -u 03_train_image_classifier.p ...
+  pothole_road_damage       1723   283   353
+  streetlight               1650   270   338
+  water_leakage              274    44    55
+  drainage                  1723   283   353
+  garbage                    712   116   145
+  road_blockage              455    74    93
+  damaged_infrastructure    1081   177   221
+  other                      486    79    99
+epoch  1  loss 1.6746  val_acc 0.692  val_macroF1 0.576  *best*
+epoch  2  loss 1.1993  val_acc 0.728  val_macroF1 0.661  *best*
+epoch  3  loss 1.0167  val_acc 0.802  val_macroF1 0.742  *best*
+epoch  4  loss 0.8800  val_acc 0.823  val_macroF1 0.763  *best*
+epoch  5  loss 0.8201  val_acc 0.805  val_macroF1 0.744
+epoch  6  loss 0.7635  val_acc 0.818  val_macroF1 0.763  *best*
+epoch  7  loss 0.7418  val_acc 0.841  val_macroF1 0.781  *best*
+epoch  8  loss 0.7047  val_acc 0.845  val_macroF1 0.786  *best*
+epoch  9  loss 0.6814  val_acc 0.844  val_macroF1 0.786
+epoch 10  loss 0.6674  val_acc 0.836  val_macroF1 0.762
+epoch 11  loss 0.6433  val_acc 0.853  val_macroF1 0.790  *best*
+epoch 12  loss 0.6313  val_acc 0.852  val_macroF1 0.792  *best*
+epoch 13  loss 0.6114  val_acc 0.859  val_macroF1 0.801  *best*
+epoch 14  loss 0.6064  val_acc 0.857  val_macroF1 0.802  *best*
+epoch 15  loss 0.5980  val_acc 0.857  val_macroF1 0.797
+epoch 16  loss 0.5910  val_acc 0.870  val_macroF1 0.809  *best*
+epoch 17  loss 0.5812  val_acc 0.856  val_macroF1 0.798
+epoch 18  loss 0.5740  val_acc 0.864  val_macroF1 0.807
+epoch 19  loss 0.5729  val_acc 0.861  val_macroF1 0.805
+epoch 20  loss 0.5650  val_acc 0.859  val_macroF1 0.802
+epoch 21  loss 0.5664  val_acc 0.863  val_macroF1 0.806
+epoch 22  loss 0.5619  val_acc 0.862  val_macroF1 0.803
+epoch 23  loss 0.5586  val_acc 0.863  val_macroF1 0.806
+epoch 24  loss 0.5581  val_acc 0.863  val_macroF1 0.807
+epoch 25  loss 0.5618  val_acc 0.862  val_macroF1 0.803
+
+TEST (real photos only): accuracy 0.851  macro-F1 0.793  temperature 0.77
+  pothole_road_damage      precision 0.93  recall 0.92  n=353
+  streetlight              precision 0.92  recall 0.94  n=338
+  water_leakage            precision 0.68  recall 0.55  n=55
+  drainage                 precision 0.90  recall 0.87  n=353
+  garbage                  precision 0.87  recall 0.80  n=145
+  road_blockage            precision 0.59  recall 0.73  n=93
+  damaged_infrastructure   precision 0.75  recall 0.78  n=221
+  other                    precision 0.74  recall 0.74  n=99
+  predictions with confidence >= 45%: 95% of photos, 88.3% correct
+python.exe : C:\Users\DELL\OneDrive\Desktop\STUDY\CivicFix\ml\03_train_image_classifier.py:258: DeprecationWarning: 
+You are using the legacy TorchScript-based ONNX export. Starting in PyTorch 2.9, the new torch.export-based ONNX 
+exporter has become the default. Learn more about the new export logic: 
+https://docs.pytorch.org/docs/stable/onnx_export.html. For exporting control flow: 
+https://pytorch.org/tutorials/beginner/onnx/export_control_flow_model_to_onnx_tutorial.html
+At line:1 char:601
++ ... DE -eq 0) { & .venv\Scripts\python.exe -u 03_train_image_classifier.p ...
 +                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (C:\Users\DELL\O...ected behavior.:String) [], RemoteException
+    + CategoryInfo          : NotSpecified: (C:\Users\DELL\O...x_tutorial.html:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
-Consider using tensor.detach() first. (Triggered internally at 
-C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
-  return float(log_t.exp().clamp(0.5, 5.0))
-
-TEST (real photos only): accuracy 0.845  macro-F1 0.774  temperature 0.82
-  pothole_road_damage      precision 0.89  recall 0.93  n=323
-  streetlight              precision 0.96  recall 0.96  n=279
-  water_leakage            precision 0.75  recall 0.44  n=54
-  drainage                 precision 0.73  recall 0.62  n=58
-  garbage                  precision 0.78  recall 0.84  n=100
-  road_blockage            precision 0.68  recall 0.71  n=100
-  damaged_infrastructure   precision 0.77  recall 0.84  n=204
-  other                    precision 0.84  recall 0.73  n=92
-  predictions with confidence >= 45%: 94% of photos, 87.6% correct
-C:\Users\DELL\OneDrive\Desktop\STUDY\CivicFix\ml\03_train_image_classifier.py:258: DeprecationWarning: You are using 
-the legacy TorchScript-based ONNX export. Starting in PyTorch 2.9, the new torch.export-based ONNX exporter has become 
-the default. Learn more about the new export logic: https://docs.pytorch.org/docs/stable/onnx_export.html. For 
-exporting control flow: https://pytorch.org/tutorials/beginner/onnx/export_control_flow_model_to_onnx_tutorial.html
   torch.onnx.export(export, dummy, str(onnx_path), input_names=["input"],
-ONNX check: max |onnx - torch| = 4.40e-06
+ONNX check: max |onnx - torch| = 3.81e-06
 Exported model to C:\Users\DELL\OneDrive\Desktop\STUDY\CivicFix\android\app\src\main\assets

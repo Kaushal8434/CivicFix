@@ -71,7 +71,7 @@ import com.civicfix.app.ui.theme.HeroGradient
 import com.civicfix.app.ui.theme.Info
 import com.civicfix.app.ui.theme.Ok
 import com.civicfix.app.ui.theme.categoryColor
-import com.civicfix.app.util.formatDay
+import com.civicfix.app.domain.timeLeft
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -208,7 +208,8 @@ fun StatusPill(c: Complaint, now: Long) {
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Pill(label, statusColor(c.status, false))
         if (overdue) Pill("Overdue", Danger)
-        if (c.escalationLevel > 0) Pill("L${c.escalationLevel}", Danger)
+        if (c.escalationLevel >= 2) Pill("Escalated L${c.escalationLevel}", Danger)
+        else if (c.escalationLevel == 1 && c.status.isOpen) Pill("Warned", Amber)
     }
 }
 
@@ -228,11 +229,11 @@ fun ComplaintCard(c: Complaint, ref: ReferenceData, now: Long, onClick: () -> Un
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(cat.label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("📍 " + c.locationLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Text("📍 " + c.address.ifBlank { c.locationLabel }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                 StatusPill(c, now)
                 Text(
-                    "${c.id} · due ${formatDay(c.dueAt)}" + if (c.supporters.isNotEmpty()) " · 👥 +${c.supporters.size}" else "",
+                    "${c.id} · ${timeLeft(c.dueAt, now).takeIf { c.status.isOpen } ?: "done"}" + if (c.supportCount > 0) " · 👥 +${c.supportCount}" else "",
                     style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -247,8 +248,9 @@ fun PhotoThumb(path: String?, fallbackEmoji: String, sizeDp: Int, accent: Color 
         Modifier.size(sizeDp.dp).clip(RoundedCornerShape(16.dp)).background(accent.copy(alpha = 0.14f)),
         contentAlignment = Alignment.Center,
     ) {
-        if (path != null && File(path).exists()) {
-            AsyncImage(model = File(path), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        val model = imageModel(path)
+        if (model != null) {
+            AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         } else {
             Text(fallbackEmoji, fontSize = (sizeDp / 2.4).sp)
         }
@@ -264,13 +266,22 @@ fun PhotoLarge(path: String?, label: String, heightDp: Int = 220) {
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
-            if (path != null && File(path).exists()) {
-                AsyncImage(model = File(path), contentDescription = label, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            val model = imageModel(path)
+            if (model != null) {
+                AsyncImage(model = model, contentDescription = label, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Text("No photo", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
+}
+
+/** A server URL, an existing local file, or null. */
+fun imageModel(path: String?): Any? = when {
+    path == null -> null
+    path.startsWith("http") -> path
+    File(path).exists() -> File(path)
+    else -> null
 }
 
 /** Dropdown selector built from an outlined field-like button + DropdownMenu. */

@@ -62,19 +62,27 @@ def download(ds):
             print(f"[warn] kagglehub missing (pip install kagglehub) - download {ds['url']} manually into {target}")
             return
         print(f"[kaggle] {ds['ref']}")
+        extracted = None
         for attempt in range(6):
             try:
-                kagglehub.dataset_download(ds["ref"])
+                extracted = Path(kagglehub.dataset_download(ds["ref"]))
                 break
             except Exception as e:  # extraction error on long paths still leaves the archive in the cache
                 print(f"  attempt {attempt + 1}: {type(e).__name__}")
                 time.sleep(5)
         cache = Path.home() / ".cache" / "kagglehub" / "datasets" / ds["ref"]
         archives = sorted(cache.glob("*.archive"))
-        if not archives:
+        if archives:
+            extract_flat(archives[-1], target)
+        elif extracted is not None and extracted.exists():
+            # kagglehub extracted it itself (small datasets): copy the images, flattening the paths.
+            for i, f in enumerate(sorted(p for p in extracted.rglob("*") if p.suffix.lower() in IMAGE_EXT)):
+                folder = str(f.parent.relative_to(extracted)).replace("\\", "/").replace("/", "__").replace(" ", "_")
+                out = target / folder
+                out.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, out / f"{i:06d}{f.suffix.lower()}")
+        else:
             print(f"[error] {ds['ref']}: download failed")
-            return
-        extract_flat(archives[-1], target)
     elif ds["kind"] == "git":
         print(f"[git] {ds['ref']}")
         subprocess.run(["git", "clone", "--depth", "1", ds["ref"], str(target)], check=False)

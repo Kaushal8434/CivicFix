@@ -1,4 +1,4 @@
-"""
+﻿"""
 Shared configuration for the CivicFix ML pipeline.
 
 The category keys below MUST match the keys used by the Android app
@@ -63,6 +63,52 @@ PUBLIC_DATASETS = [
         # The big classes are capped so they do not drown out the rarer ones.
         "cap": {"pothole_road_damage": 1500, "damaged_infrastructure": 900, "garbage": 1500},
     },
+    # --- Indian civic-issue / drainage datasets (added after real-world drainage photos were misclassified) ---
+    {
+        "name": "civic-issues-datasets",
+        "kind": "kaggle",
+        "ref": "prince8tiwari/civic-issues-datasets",
+        "url": "https://www.kaggle.com/datasets/prince8tiwari/civic-issues-datasets",
+        "rules": [("waterlogging", "drainage"), ("garbage", "garbage"), ("pothole", "pothole_road_damage"),
+                  ("strretlight", "streetlight"), ("streetlight", "streetlight"), ("plain", "other")],
+    },
+    {
+        "name": "waterlogging-and-flooding-images",
+        "kind": "kaggle",
+        "ref": "jasleenk2727/waterlogging-and-flooding-images",
+        "url": "https://www.kaggle.com/datasets/jasleenk2727/waterlogging-and-flooding-images",
+        "rules": [("", "drainage")],
+    },
+    {
+        "name": "uncovered-gutters",
+        "kind": "kaggle",
+        "ref": "azeezmuhammed/uncovered-gutters-datasets",
+        "url": "https://www.kaggle.com/datasets/azeezmuhammed/uncovered-gutters-datasets",
+        "rules": [("", "drainage")],
+    },
+    {
+        "name": "stagnant-water-1",
+        "kind": "kaggle",
+        "ref": "monumental610/stagnant-water-dataset2",
+        "cap": {"drainage": 700},
+        "url": "https://www.kaggle.com/datasets/monumental610/stagnant-water-dataset2",
+        "rules": [("", "drainage")],
+    },
+    {
+        "name": "stagnant-water-2",
+        "kind": "kaggle",
+        "ref": "insankamil1004/stagnant-water-dataset",
+        "cap": {"drainage": 700},
+        "url": "https://www.kaggle.com/datasets/insankamil1004/stagnant-water-dataset",
+        "rules": [("", "drainage")],
+    },
+    {
+        "name": "urban-community-issues",
+        "kind": "kaggle",
+        "ref": "rajeevpaudel1/urban-community-issues",
+        "url": "https://www.kaggle.com/datasets/rajeevpaudel1/urban-community-issues",
+        "rules": [("open_manhole", "drainage"), ("good_road", "other")],
+    },
     {
         "name": "street-light-dataset",
         "kind": "git",
@@ -104,8 +150,11 @@ WEB_SOURCES = {
                     "water wastage leaking pipeline", "broken pipe water spraying", "sinkhole water main"],
     },
     "drainage": {
-        "commons_cats": ["Open drains", "Open drains in India", "Sewage", "Sewage overflows", "Drains in India", "Clogged drains", "Waterlogging", "Flooded streets in India", "Storm drains"],
-        "queries": ["open drain India", "clogged drain garbage", "sewage overflow street", "overflowing manhole sewage", "waterlogged street", "blocked storm drain", "nala drain city"],
+        "commons_cats": ["Open drains", "Open drains in India", "Sewage", "Sewage overflows", "Drains in India", "Clogged drains", "Waterlogging", "Flooded streets in India", "Storm drains",
+                         "Manholes without covers", "Open sewers", "Sewage in India", "Waterlogging in India", "Gutters (drainage)", "Nullahs"],
+        "queries": ["open drain India", "clogged drain garbage", "sewage overflow street", "overflowing manhole sewage", "waterlogged street", "blocked storm drain", "nala drain city",
+                    "open sewer", "overflowing sewer India", "gutter overflowing street", "manhole overflowing road", "open manhole road", "blocked drain plastic",
+                    "nullah garbage", "waterlogged road monsoon India", "dirty drain water street", "drain choked garbage India", "sewage water on road"],
     },
     "garbage": {
         "commons_cats": ["Garbage in India", "Litter in India", "Garbage dumps", "Illegal dumping", "Overflowing waste containers", "Litter on streets"],
@@ -116,8 +165,8 @@ WEB_SOURCES = {
         "queries": ["fallen tree blocking road", "tree fallen on street", "road blocked debris", "road closed barricade", "construction material blocking road", "landslide road blocked"],
     },
     "damaged_infrastructure": {
-        "commons_cats": ["Manholes without covers", "Broken manhole covers", "Damaged sidewalks", "Broken benches", "Damaged bridges", "Damaged railings", "Damaged road signs", "Broken footpaths"],
-        "queries": ["open manhole footpath", "broken manhole cover", "damaged footpath tiles", "broken railing bridge", "broken public bench", "damaged road divider", "collapsed footpath"],
+        "commons_cats": ["Damaged sidewalks", "Broken benches", "Damaged bridges", "Damaged railings", "Damaged road signs", "Broken footpaths"],
+        "queries": ["damaged footpath tiles", "broken railing bridge", "broken public bench", "damaged road divider", "collapsed footpath"],
     },
     "other": {
         "commons_cats": ["Streets in India", "Roads in India", "Parks in India", "Clean streets", "Residential streets", "Markets in India"],
@@ -132,10 +181,11 @@ CLIP_PROMPTS = {
     "pothole_road_damage": ["a photo of a pothole in a road", "a photo of a damaged, cracked asphalt road", "a photo of a broken road surface with holes"],
     "streetlight": ["a photo of a street light pole", "a photo of a broken street lamp", "a photo of a street lamp on a road"],
     "water_leakage": ["a photo of water leaking from a burst pipe", "a photo of a water main break flooding a street", "a photo of a leaking water pipe"],
-    "drainage": ["a photo of an open drain with dirty water", "a photo of sewage overflowing on a street", "a photo of a clogged drain", "a photo of a waterlogged flooded street"],
+    "drainage": ["a photo of an open drain with dirty water", "a photo of sewage overflowing on a street", "a photo of a clogged drain",
+                 "a photo of a waterlogged flooded street", "a photo of an open or overflowing sewer manhole", "a photo of a gutter full of garbage and dirty water"],
     "garbage": ["a photo of a pile of garbage on the roadside", "a photo of an overflowing trash bin", "a photo of litter and waste dumped on a street"],
     "road_blockage": ["a photo of a fallen tree blocking a road", "a photo of a road blocked by debris", "a photo of a road closed with barricades", "a photo of cars parked blocking a street"],
-    "damaged_infrastructure": ["a photo of an open manhole without a cover", "a photo of a broken footpath", "a photo of a damaged road sign", "a photo of broken public property", "a photo of a damaged railing or bench"],
+    "damaged_infrastructure": ["a photo of a broken footpath", "a photo of a damaged road sign", "a photo of broken public property", "a photo of a damaged railing or bench"],
     "other": ["a photo of a clean city street", "a photo of a normal road in good condition", "a photo of a park", "a photo of a building", "a photo of people in a city"],
 }
 CLIP_JUNK = ["a map", "a document or text page", "a logo", "a portrait of a person", "a group of people at a ceremony",

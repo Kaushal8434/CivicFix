@@ -27,7 +27,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageStat
 
 from config import CATEGORIES, CLIP_JUNK, CLIP_PROMPTS, DATA, OUT_DIR, REAL_DIR, WEB_DIR
 
@@ -132,6 +132,11 @@ def main():
             else:
                 reason = f"low({civic[li]:.2f})"
 
+        if final is not None:
+            # Black / blank frames (some datasets contain them) carry no information.
+            small = Image.open(path).convert("L").resize((64, 64))
+            if ImageStat.Stat(small).stddev[0] < 8:
+                final, reason = None, "blank"
         if final is not None and n_kept:
             if (kept_emb[:n_kept] @ emb[i]).max() >= args.dup:
                 final, reason = None, "duplicate"

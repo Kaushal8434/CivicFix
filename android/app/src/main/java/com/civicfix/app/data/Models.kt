@@ -14,93 +14,130 @@ enum class Status(val label: String) {
     val isOpen get() = this != RESOLVED && this != CLOSED
 }
 
-enum class Role { CITIZEN, OFFICER, SUPERVISOR }
+enum class Role {
+    CITIZEN, OFFICER, SUPERVISOR, ADMIN;
 
-data class Session(val role: Role, val name: String, val departmentId: String? = null)
-
-data class TimelineEvent(val time: Long, val title: String, val note: String, val actor: String) {
-    fun toJson() = JSONObject().put("time", time).put("title", title).put("note", note).put("actor", actor)
+    val isStaff get() = this != CITIZEN
 
     companion object {
-        fun fromJson(o: JSONObject) =
-            TimelineEvent(o.getLong("time"), o.getString("title"), o.optString("note"), o.optString("actor"))
+        fun of(s: String) = entries.firstOrNull { it.name.equals(s, ignoreCase = true) } ?: CITIZEN
+    }
+}
+
+/** The signed-in user (from the server). */
+data class Session(
+    val role: Role,
+    val name: String,
+    val departmentId: String? = null,
+    val phone: String? = null,
+    val id: Int = 0,
+    val level: Int = 0,
+    val designation: String? = null,
+) {
+    companion object {
+        fun fromJson(o: JSONObject) = Session(
+            role = Role.of(o.getString("role")), name = o.getString("name"),
+            departmentId = o.optStringOrNull("departmentId"), phone = o.optStringOrNull("phone"),
+            id = o.optInt("id"), level = o.optInt("level"), designation = o.optStringOrNull("designation"),
+        )
+    }
+}
+
+data class TimelineEvent(val time: Long, val title: String, val note: String, val actor: String)
+
+data class Person(val id: Int, val name: String, val designation: String?, val phone: String?) {
+    companion object {
+        fun fromJson(o: JSONObject?) = o?.let {
+            Person(it.optInt("id"), it.getString("name"), it.optStringOrNull("designation"), it.optStringOrNull("phone"))
+        }
     }
 }
 
 data class Complaint(
     val id: String,
     val citizenName: String,
-    val cityId: String,
-    val zoneId: String,
-    val wardId: String,
-    val localityId: String,
-    val locationLabel: String,
-    val lat: Double?,
-    val lng: Double?,
-    val landmark: String,
     val category: String,
     val severity: String,
     val description: String,
-    val beforePhoto: String?,
-    val afterPhoto: String? = null,
+    val address: String,
+    val landmark: String,
+    val lat: Double?,
+    val lng: Double?,
+    val localityId: String,
+    val locationLabel: String,
     val departmentId: String,
-    val assignedTeam: String? = null,
-    val status: Status = Status.NEW,
+    val agency: String,
+    val status: Status,
     val createdAt: Long,
     val dueAt: Long,
-    val resolvedAt: Long? = null,
-    val closedAt: Long? = null,
-    val escalationLevel: Int = 0,
-    val supporters: List<String> = emptyList(),
-    val actionTaken: String? = null,
-    val aiSummary: String? = null,
-    val afterPhotoAiCheck: String? = null,
-    val reopenCount: Int = 0,
-    val timeline: List<TimelineEvent> = emptyList(),
+    val slaHours: Int,
+    val resolvedAt: Long?,
+    val closedAt: Long?,
+    val reopenCount: Int,
+    val escalationLevel: Int,
+    val supportCount: Int,
+    val supporters: List<String>,
+    val officer: Person?,
+    val supervisor: Person?,
+    val escalatedTo: Person?,
+    val assignedTeam: String?,
+    /** Absolute URLs (server media). */
+    val beforePhoto: String?,
+    val afterPhoto: String?,
+    val afterVideo: String?,
+    val actionTaken: String?,
+    val proofCheck: String?,
+    val afterPhotoAiCheck: String?,
+    val aiSummary: String?,
+    val isMine: Boolean,
+    val hasSupported: Boolean,
+    val citizenPhone: String?,
+    val timeline: List<TimelineEvent>,
 ) {
     fun isOverdue(now: Long) = status.isOpen && now > dueAt
 
-    fun toJson(): JSONObject = JSONObject().apply {
-        put("id", id); put("citizenName", citizenName)
-        put("cityId", cityId); put("zoneId", zoneId); put("wardId", wardId); put("localityId", localityId)
-        put("locationLabel", locationLabel); put("lat", lat ?: JSONObject.NULL); put("lng", lng ?: JSONObject.NULL)
-        put("landmark", landmark); put("category", category); put("severity", severity)
-        put("description", description); put("beforePhoto", beforePhoto ?: JSONObject.NULL)
-        put("afterPhoto", afterPhoto ?: JSONObject.NULL); put("departmentId", departmentId)
-        put("assignedTeam", assignedTeam ?: JSONObject.NULL); put("status", status.name)
-        put("createdAt", createdAt); put("dueAt", dueAt)
-        put("resolvedAt", resolvedAt ?: JSONObject.NULL); put("closedAt", closedAt ?: JSONObject.NULL)
-        put("escalationLevel", escalationLevel); put("supporters", JSONArray(supporters))
-        put("actionTaken", actionTaken ?: JSONObject.NULL); put("aiSummary", aiSummary ?: JSONObject.NULL)
-        put("afterPhotoAiCheck", afterPhotoAiCheck ?: JSONObject.NULL); put("reopenCount", reopenCount)
-        put("timeline", JSONArray(timeline.map { it.toJson() }))
-    }
-
     companion object {
-        private fun JSONObject.str(k: String) = if (isNull(k) || !has(k)) null else getString(k)
-        private fun JSONObject.lng(k: String) = if (isNull(k) || !has(k)) null else getLong(k)
-        private fun JSONObject.dbl(k: String) = if (isNull(k) || !has(k)) null else getDouble(k)
-
-        fun fromJson(o: JSONObject): Complaint {
+        fun fromJson(o: JSONObject, mediaUrl: (String?) -> String?): Complaint {
             val sup = o.optJSONArray("supporters") ?: JSONArray()
             val tl = o.optJSONArray("timeline") ?: JSONArray()
             return Complaint(
-                id = o.getString("id"), citizenName = o.getString("citizenName"),
-                cityId = o.getString("cityId"), zoneId = o.getString("zoneId"),
-                wardId = o.getString("wardId"), localityId = o.getString("localityId"),
-                locationLabel = o.getString("locationLabel"), lat = o.dbl("lat"), lng = o.dbl("lng"),
-                landmark = o.optString("landmark"), category = o.getString("category"),
-                severity = o.getString("severity"), description = o.getString("description"),
-                beforePhoto = o.str("beforePhoto"), afterPhoto = o.str("afterPhoto"),
-                departmentId = o.getString("departmentId"), assignedTeam = o.str("assignedTeam"),
-                status = Status.valueOf(o.getString("status")), createdAt = o.getLong("createdAt"),
-                dueAt = o.getLong("dueAt"), resolvedAt = o.lng("resolvedAt"), closedAt = o.lng("closedAt"),
-                escalationLevel = o.optInt("escalationLevel"),
-                supporters = (0 until sup.length()).map { sup.getString(it) },
-                actionTaken = o.str("actionTaken"), aiSummary = o.str("aiSummary"),
-                afterPhotoAiCheck = o.str("afterPhotoAiCheck"), reopenCount = o.optInt("reopenCount"),
-                timeline = (0 until tl.length()).map { TimelineEvent.fromJson(tl.getJSONObject(it)) },
+                id = o.getString("id"), citizenName = o.optString("citizenName"), category = o.getString("category"),
+                severity = o.optString("severity", "medium"), description = o.optString("description"),
+                address = o.optString("address"), landmark = o.optString("landmark"),
+                lat = o.optDoubleOrNull("lat"), lng = o.optDoubleOrNull("lng"),
+                localityId = o.optString("localityId"), locationLabel = o.optString("locationLabel"),
+                departmentId = o.optString("departmentId"), agency = o.optString("agency"),
+                status = Status.valueOf(o.getString("status")), createdAt = o.getLong("createdAt"), dueAt = o.getLong("dueAt"),
+                slaHours = o.optInt("slaHours"), resolvedAt = o.optLongOrNull("resolvedAt"), closedAt = o.optLongOrNull("closedAt"),
+                reopenCount = o.optInt("reopenCount"), escalationLevel = o.optInt("escalationLevel"),
+                supportCount = o.optInt("supportCount"), supporters = (0 until sup.length()).map { sup.getString(it) },
+                officer = Person.fromJson(o.optJSONObject("officer")), supervisor = Person.fromJson(o.optJSONObject("supervisor")),
+                escalatedTo = Person.fromJson(o.optJSONObject("escalatedTo")), assignedTeam = o.optStringOrNull("assignedTeam"),
+                beforePhoto = mediaUrl(o.optStringOrNull("beforePhoto")), afterPhoto = mediaUrl(o.optStringOrNull("afterPhoto")),
+                afterVideo = mediaUrl(o.optStringOrNull("afterVideo")), actionTaken = o.optStringOrNull("actionTaken"),
+                proofCheck = o.optStringOrNull("proofCheck"), afterPhotoAiCheck = o.optStringOrNull("afterPhotoAiCheck"),
+                aiSummary = o.optStringOrNull("aiSummary"), isMine = o.optBoolean("isMine"), hasSupported = o.optBoolean("hasSupported"),
+                citizenPhone = o.optStringOrNull("citizenPhone"),
+                timeline = (0 until tl.length()).map {
+                    val e = tl.getJSONObject(it)
+                    TimelineEvent(e.getLong("time"), e.getString("title"), e.optString("note"), e.optString("actor"))
+                },
             )
         }
     }
 }
+
+/** A possible duplicate returned by the server's AI check. */
+data class DuplicateMatch(val complaint: Complaint, val distanceM: Int, val similarity: Double?, val verdict: String)
+
+data class StaffMember(val id: Int, val name: String, val designation: String, val level: Int, val open: Int)
+
+data class AppNotification(val id: Int, val complaintId: String?, val kind: String, val title: String, val body: String,
+                           val createdAt: Long, val read: Boolean)
+
+/** How a department works (from the server's Delhi workflow table). */
+data class Workflow(val agency: String, val name: String, val chain: List<String>, val slaHours: Map<String, Int>, val helpline: String)
+
+fun JSONObject.optStringOrNull(k: String): String? = if (!has(k) || isNull(k)) null else optString(k)
+fun JSONObject.optDoubleOrNull(k: String): Double? = if (!has(k) || isNull(k)) null else optDouble(k)
+fun JSONObject.optLongOrNull(k: String): Long? = if (!has(k) || isNull(k)) null else optLong(k)

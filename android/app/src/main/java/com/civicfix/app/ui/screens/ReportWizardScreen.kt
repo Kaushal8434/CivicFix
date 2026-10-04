@@ -55,7 +55,10 @@ import com.civicfix.app.data.Complaint
 import com.civicfix.app.data.LocationPath
 import com.civicfix.app.data.Session
 import com.civicfix.app.data.TimelineEvent
-import com.civicfix.app.domain.DAY_MS
+import com.civicfix.app.domain.HOUR_MS
+import com.civicfix.app.data.DuplicateMatch
+import com.civicfix.app.util.formatDate
+import java.io.File
 import com.civicfix.app.domain.nearestLocality
 import com.civicfix.app.ml.AiResult
 import com.civicfix.app.ui.components.AppScaffold
@@ -64,6 +67,12 @@ import com.civicfix.app.ui.components.CategoryTile
 import com.civicfix.app.ui.components.ComplaintCard
 import com.civicfix.app.ui.components.ConfidenceRow
 import com.civicfix.app.ui.components.InfoLine
+import com.civicfix.app.ui.components.MapPicker
+import com.civicfix.app.util.Geo
+import com.civicfix.app.util.Place
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import com.civicfix.app.ui.components.PhotoInput
 import com.civicfix.app.ui.components.PhotoLarge
 import com.civicfix.app.ui.components.PrimaryButton
@@ -101,9 +110,13 @@ fun ReportWizardScreen(app: CivicFixApp, session: Session, nav: Nav) {
     var wardId by rememberSaveable { mutableStateOf<String?>(null) }
     var localityId by rememberSaveable { mutableStateOf<String?>(null) }
     var landmark by rememberSaveable { mutableStateOf("") }
+    // The pin on the map (from GPS, a tap on the map, or an address search).
     var gpsLat by rememberSaveable { mutableStateOf<Double?>(null) }
     var gpsLng by rememberSaveable { mutableStateOf<Double?>(null) }
     var gpsMsg by rememberSaveable { mutableStateOf<String?>(null) }
+    var address by rememberSaveable { mutableStateOf("") }
+    var searchText by rememberSaveable { mutableStateOf("") }
+    var manualWard by rememberSaveable { mutableStateOf(false) }
     var photo by rememberSaveable { mutableStateOf<String?>(null) }
     var description by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf<String?>(null) }
@@ -126,27 +139,58 @@ fun ReportWizardScreen(app: CivicFixApp, session: Session, nav: Nav) {
         cityId = p.city.id; zoneId = p.zone.id; wardId = p.ward.id; localityId = p.locality.id
     }
 
+    var submitting by remember { mutableStateOf(false) }
+    var submitError by remember { mutableStateOf<String?>(null) }
+    var duplicates by remember { mutableStateOf<List<DuplicateMatch>>(emptyList()) }
+    var searchBusy by remember { mutableStateOf(false) }
+    var searchResults by remember { mutableStateOf<List<Place>>(emptyList()) }
+
+    /** Moves the pin, picks the ward used for routing, and looks up the street address. */
+    fun setPin(lat: Double, lng: Double, knownAddress: String? = null) {
+        gpsLat = lat; gpsLng = lng
+        searchResults = emptyList()
+        nearestLocality(ref, lat, lng)?.let { near ->
+            applyPath(near.first)
+            val km = near.second / 1000
+            gpsMsg = if (km < 5) "Routed via ${near.first.locality.name} ward office (${"%.1f".format(km)} km)"
+            else "This spot is outside the demo wards – routed to the nearest office, ${near.first.locality.name} (${"%.0f".format(km)} km)."
+        }
+        if (knownAddress != null) {
+            address = knownAddress
+        } else {
+            scope.launch {
+                withContext(Dispatchers.IO) { Geo.reverse(context, lat, lng) }?.let { address = it }
+            }
+        }
+    }
+
     val locate = {
         gpsBusy = true
         gpsMsg = "Getting your location…"
         Gps.current(context) { loc ->
             gpsBusy = false
-            if (loc == null) {
-                gpsMsg = "Could not get a GPS fix. Turn on location or select the area manually."
-            } else {
-                gpsLat = loc.latitude; gpsLng = loc.longitude
-                val near = nearestLocality(ref, loc.latitude, loc.longitude)
-                if (near != null) {
-                    applyPath(near.first)
-                    val km = near.second / 1000
-                    gpsMsg = if (km < 5) "Matched to ${near.first.locality.name} (${"%.1f".format(km)} km away)"
-                    else "You are outside the demo area – nearest locality pre-selected (${"%.0f".format(km)} km). Please adjust."
-                }
-            }
+            if (loc == null) gpsMsg = "Could not get a GPS fix. Turn on location, tap the map, or type the address."
+            else setPin(loc.latitude, loc.longitude)
         }
     }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res ->
-        if (res.values.any { it }) locate() else gpsMsg = "Location permission denied – select the area manually."
+        if (res.values.any { it }) locate() else gpsMsg = "Location permission denied – tap the map or type the address."
+    }
+
+    fun searchAddress() {
+        val q = searchText.trim()
+        if (q.length < 3) return
+        searchBusy = true
+        scope.launch {
+            val found = withContext(Dispatchers.IO) { Geo.search(context, q) }
+            searchBusy = false
+            searchResults = found
+            when {
+                found.isEmpty() -> gpsMsg = "Address not found on the map – it is saved as typed. Tap the map to place the pin."
+                found.size == 1 -> setPin(found[0].lat, found[0].lng, found[0].label)
+            }
+            if (address.isBlank()) address = q
+        }
     }
 
     // Live photo hint on the evidence step.
@@ -191,31 +235,37 @@ fun ReportWizardScreen(app: CivicFixApp, session: Session, nav: Nav) {
         0 -> "Next: add evidence"
         1 -> "🤖  Analyse with AI"
         2 -> "Review complaint"
-        else -> "✅  Submit complaint"
+        else -> if (submitting) "Uploading…" else "✅  Submit complaint"
     }
 
     fun submit() {
         val p = path ?: return
         val cat = ref.category(category ?: return)
-        val r = app.routing.route(cat.key, severity, p)
+        submitting = true
+        submitError = null
         scope.launch {
-            val now = app.clock.now()
-            val id = app.repo.newId(now)
-            val c = Complaint(
-                id = id, citizenName = session.name,
-                cityId = p.city.id, zoneId = p.zone.id, wardId = p.ward.id, localityId = p.locality.id,
-                locationLabel = p.label, lat = gpsLat ?: p.locality.lat, lng = gpsLng ?: p.locality.lng,
-                landmark = landmark, category = cat.key, severity = severity, description = description.trim(),
-                beforePhoto = photo, departmentId = r.department.id, createdAt = now, dueAt = now + r.slaDays * DAY_MS,
-                aiSummary = ai?.summary(ref)?.let { s -> if (ai?.category != cat.key) "$s – citizen chose ${cat.label}" else s },
-                timeline = listOf(
-                    TimelineEvent(now, "Complaint submitted", "Complaint ID $id created", session.name),
-                    TimelineEvent(now, "Routed automatically", "${r.officeLabel}. Target date ${formatDay(now + r.slaDays * DAY_MS)}", "System"),
-                ),
-            )
-            app.repo.add(c)
-            nav.replace(Screen.Detail(id))
+            try {
+                val c = app.repo.create(
+                    lat = gpsLat ?: p.locality.lat, lng = gpsLng ?: p.locality.lng, category = cat.key, severity = severity,
+                    description = description.trim(), address = address.trim(), landmark = landmark.trim(), localityId = p.locality.id,
+                    aiSummary = ai?.summary(ref)?.let { s -> if (ai?.category != cat.key) "$s – citizen chose ${cat.label}" else s },
+                    photo = photo?.let(::File)?.takeIf { it.exists() },
+                )
+                nav.replace(Screen.Detail(c.id))
+            } catch (e: Exception) {
+                submitError = e.message
+            }
+            submitting = false
         }
+    }
+
+    // Server-side duplicate check (same problem within 100 m, photos compared by the AI).
+    LaunchedEffect(step, category, gpsLat, gpsLng, photo) {
+        val cat = category
+        if (step != 2 || cat == null) return@LaunchedEffect
+        val lat = gpsLat ?: path?.locality?.lat ?: return@LaunchedEffect
+        val lng = gpsLng ?: path?.locality?.lng ?: return@LaunchedEffect
+        duplicates = runCatching { app.repo.checkDuplicates(lat, lng, cat, photo?.let(::File)?.takeIf { it.exists() }) }.getOrDefault(emptyList())
     }
 
     AppScaffold(
@@ -231,7 +281,7 @@ fun ReportWizardScreen(app: CivicFixApp, session: Session, nav: Nav) {
                     if (step > 0) SecondaryButton("Back", { step-- }, Modifier.weight(0.4f))
                     PrimaryButton(nextLabel, {
                         if (step < 3) step++ else submit()
-                    }, Modifier.weight(1f), enabled = canNext, color = if (step == 3) Ok else null)
+                    }, Modifier.weight(1f), enabled = canNext && !submitting, color = if (step == 3) Ok else null)
                 }
             }
         },
@@ -262,26 +312,66 @@ fun ReportWizardScreen(app: CivicFixApp, session: Session, nav: Nav) {
                                     }
                                     Text("🛰️  Use my current location", fontWeight = FontWeight.SemiBold)
                                 }
-                                gpsMsg?.let { Banner(it, if (gpsLat != null) Ok else Amber, if (gpsLat != null) "✅" else "ℹ️") }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    HorizontalDivider(Modifier.weight(1f))
-                                    Text("  or choose manually  ", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    HorizontalDivider(Modifier.weight(1f))
+
+                                // Type an address / place and find it on the map
+                                OutlinedTextField(
+                                    searchText, { searchText = it },
+                                    label = { Text("Search or type the address") },
+                                    placeholder = { Text("e.g. Lajpat Nagar Metro Station, Delhi") },
+                                    singleLine = true, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                    keyboardActions = KeyboardActions(onSearch = { searchAddress() }),
+                                    trailingIcon = {
+                                        if (searchBusy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                                        else TextButton(onClick = { searchAddress() }, enabled = searchText.trim().length >= 3) { Text("Find") }
+                                    },
+                                )
+                                if (searchResults.size > 1) {
+                                    Text("Pick the right place:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    searchResults.forEach { pl ->
+                                        Surface(
+                                            onClick = { setPin(pl.lat, pl.lng, pl.label) },
+                                            shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainer,
+                                            modifier = Modifier.fillMaxWidth(),
+                                        ) { Text("📍 ${pl.label}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(10.dp), maxLines = 2) }
+                                    }
                                 }
-                                Selector("City", ref.cities, city, { it.name }, { cityId = it.id; zoneId = null; wardId = null; localityId = null })
-                                Selector("Town / Zone", city?.zones.orEmpty(), zone, { it.name }, { zoneId = it.id; wardId = null; localityId = null }, enabled = city != null)
-                                Selector("Ward / Area", zone?.wards.orEmpty(), ward, { it.name }, { wardId = it.id; localityId = null }, enabled = zone != null)
-                                Selector("Locality", ward?.localities.orEmpty(), locality, { it.name }, { localityId = it.id }, enabled = ward != null)
+
+                                MapPicker(gpsLat, gpsLng, onPick = { la, ln -> setPin(la, ln) })
+                                Text("Tap the map or drag the pin to the exact spot.", style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                                OutlinedTextField(
+                                    address, { address = it }, label = { Text("Address (filled from the map – edit if needed)") },
+                                    minLines = 2, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth(),
+                                )
                                 OutlinedTextField(
                                     landmark, { landmark = it }, label = { Text("Nearby landmark (optional)") },
                                     singleLine = true, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth(),
                                 )
+                                gpsMsg?.let { Banner(it, if (gpsLat != null) Ok else Amber, if (gpsLat != null) "🧭" else "ℹ️") }
                                 val lat = gpsLat ?: locality?.lat
                                 val lng = gpsLng ?: locality?.lng
                                 if (lat != null && lng != null) {
-                                    TextButton(onClick = { Maps.openGoogleMaps(context, lat, lng, locality?.name ?: "Selected location") }) {
+                                    TextButton(onClick = { Maps.openGoogleMaps(context, lat, lng, address.ifBlank { locality?.name ?: "Selected location" }) }) {
                                         Text("🗺️  Check this spot on Google Maps")
                                     }
+                                }
+                            }
+
+                            // Ward used for routing: filled automatically from the pin, can be set by hand.
+                            SectionCard("Ward office (for routing)", icon = "🏛️") {
+                                if (path != null && !manualWard) {
+                                    Text(path.label, style = MaterialTheme.typography.bodyMedium)
+                                    TextButton(onClick = { manualWard = true }) { Text("Change ward manually") }
+                                } else {
+                                    if (path == null) Text("Drop a pin on the map, or choose the ward yourself:", style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Selector("City / State", ref.cities, city, { it.name }, { cityId = it.id; zoneId = null; wardId = null; localityId = null })
+                                    Selector("Town / Zone", city?.zones.orEmpty(), zone, { it.name }, { zoneId = it.id; wardId = null; localityId = null }, enabled = city != null)
+                                    Selector("Ward / Area", zone?.wards.orEmpty(), ward, { it.name }, { wardId = it.id; localityId = null }, enabled = zone != null)
+                                    Selector("Locality", ward?.localities.orEmpty(), locality, { it.name }, { localityId = it.id }, enabled = ward != null)
+                                    if (manualWard && path != null) TextButton(onClick = { manualWard = false }) { Text("Done") }
                                 }
                             }
                         }
@@ -348,30 +438,38 @@ fun ReportWizardScreen(app: CivicFixApp, session: Session, nav: Nav) {
                             }
                             val cat = category
                             if (cat != null && path != null) {
-                                val r = app.routing.route(cat, severity, path)
-                                SectionCard("Smart routing", icon = "🧭", accent = categoryColor(cat)) {
-                                    Text(r.department.name, style = MaterialTheme.typography.titleSmall)
-                                    Text(r.officeLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    InfoLine("Handled by", r.officerRole)
-                                    InfoLine("Target", "${r.slaDays} day(s) · ${formatDay(app.clock.now() + r.slaDays * DAY_MS)}")
-                                }
-                                val similar = app.duplicates.findSimilar(app.repo.complaints.value, cat, path.locality.id, gpsLat, gpsLng)
-                                if (similar.isNotEmpty()) {
-                                    SectionCard("Already reported nearby?", icon = "👥", accent = Amber) {
-                                        Text("Supporting an existing complaint raises its priority instead of creating a duplicate.",
+                                val wf = app.repo.workflowFor(cat)
+                                if (wf != null) {
+                                    val hours = wf.slaHours[severity] ?: 48
+                                    SectionCard("Smart routing", icon = "🧭", accent = categoryColor(cat)) {
+                                        Text(wf.agency, style = MaterialTheme.typography.titleSmall)
+                                        Text("Ward office: ${path.label}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        InfoLine("Assigned to", wf.chain.first())
+                                        InfoLine("Supervisor", wf.chain.getOrElse(1) { "-" })
+                                        InfoLine("Deadline", "$hours h · ${formatDate(app.repo.now() + hours * HOUR_MS)}")
+                                        Text("If the deadline is missed the officer is warned and the supervisor told; late by 2× it goes to the ${wf.chain.getOrElse(2) { "higher officer" }}.",
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        similar.take(3).forEach { c ->
-                                            ComplaintCard(c, ref, app.clock.now()) { nav.go(Screen.Detail(c.id)) }
-                                            SecondaryButton("👍  Support ${c.id} instead", {
-                                                app.repo.update(c.id) {
-                                                    if (session.name in it.supporters || it.citizenName == session.name) it
-                                                    else it.copy(
-                                                        supporters = it.supporters + session.name,
-                                                        timeline = it.timeline + TimelineEvent(app.clock.now(), "Another citizen reported this", "${session.name} supported the complaint", "Citizen"),
-                                                    )
+                                    }
+                                }
+                                if (duplicates.isNotEmpty()) {
+                                    SectionCard("Already reported nearby?", icon = "👥", accent = Amber) {
+                                        Text("These open complaints are within 100 m" + (if (photo != null) " and the AI compared the photos" else "") +
+                                            ". If it is the same problem, add your +1 – it raises the priority instead of creating a duplicate.",
+                                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        duplicates.forEach { m ->
+                                            val c = m.complaint
+                                            Banner(
+                                                (if (m.verdict == "same") "Very likely the same problem" else "Possibly the same problem") +
+                                                    " · ${m.distanceM} m away" + (m.similarity?.let { " · photo match ${(it * 100).toInt()}%" } ?: ""),
+                                                if (m.verdict == "same") Danger else Amber, "🤖",
+                                            )
+                                            ComplaintCard(c, ref, app.repo.now()) { nav.go(Screen.Detail(c.id)) }
+                                            SecondaryButton(if (c.hasSupported) "You already supported this" else "👍  +1 – I'm facing this too (${c.supportCount})", {
+                                                scope.launch {
+                                                    runCatching { app.repo.support(c.id) }
+                                                    nav.replace(Screen.Detail(c.id))
                                                 }
-                                                nav.replace(Screen.Detail(c.id))
-                                            })
+                                            }, enabled = !c.hasSupported && !c.isMine)
                                         }
                                     }
                                 }
@@ -382,19 +480,24 @@ fun ReportWizardScreen(app: CivicFixApp, session: Session, nav: Nav) {
                             val p = path
                             val cat = category?.let(ref::category)
                             if (p != null && cat != null) {
-                                val r = app.routing.route(cat.key, severity, p)
+                                val wf = app.repo.workflowFor(cat.key)
                                 if (photo != null) PhotoLarge(photo, "Evidence")
                                 SectionCard(cat.label, icon = cat.emoji, accent = categoryColor(cat.key)) {
                                     InfoLine("Severity", severity.replaceFirstChar { it.uppercase() })
-                                    InfoLine("Department", r.department.name)
-                                    InfoLine("Target", "${r.slaDays} day(s)")
+                                    wf?.let {
+                                        InfoLine("Department", it.agency)
+                                        InfoLine("Deadline", "${it.slaHours[severity] ?: 48} hours")
+                                    }
                                     HorizontalDivider()
-                                    Text("📍 ${p.label}" + if (landmark.isNotBlank()) " (near $landmark)" else "", style = MaterialTheme.typography.bodyMedium)
+                                    if (address.isNotBlank()) Text("📍 ${address.trim()}", style = MaterialTheme.typography.bodyMedium)
+                                    Text((if (address.isBlank()) "📍 " else "🏛️ ") + p.label + if (landmark.isNotBlank()) " (near $landmark)" else "",
+                                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     if (gpsLat != null && gpsLng != null) Text("GPS %.5f, %.5f".format(gpsLat, gpsLng), style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text("📝 ${description.ifBlank { "(no description)" }}", style = MaterialTheme.typography.bodyMedium)
                                 }
                                 Banner("You will get a notification when the department marks it resolved, and you confirm whether it is really fixed.", Info, "🔔")
+                                submitError?.let { Banner(it, Danger, "⚠️") }
                             }
                         }
                     }

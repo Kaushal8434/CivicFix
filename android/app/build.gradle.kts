@@ -12,8 +12,8 @@ android {
         applicationId = "com.civicfix.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
         // Phones (ARM) + the x86_64 emulator; drops 32-bit x86 to keep the APK smaller.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
     }
@@ -55,6 +55,9 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$camerax")
     implementation("androidx.camera:camera-lifecycle:$camerax")
     implementation("androidx.camera:camera-view:$camerax")
+    implementation("androidx.camera:camera-video:$camerax")
+    // OpenStreetMap map for picking the problem location (no API key needed)
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     // On-device inference for the photo classifier trained in ml/03_train_image_classifier.py
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.19.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
