@@ -1,0 +1,53 @@
+{
+  "_note": "Demo administrative hierarchy for the prototype. Zone/ward names and coordinates are illustrative, not official boundaries.",
+  "cities": [
+    {"id": "lko", "name": "Lucknow", "zones": [
+      {"id": "lko-z1", "name": "Zone 1 (Central)", "wards": [
+        {"id": "lko-w12", "name": "Ward 12 - Hazratganj", "localities": [
+          {"id": "lko-hazratganj", "name": "Hazratganj Market", "lat": 26.8467, "lng": 80.9462},
+          {"id": "lko-narhi", "name": "Narhi", "lat": 26.8420, "lng": 80.9510}]},
+        {"id": "lko-w15", "name": "Ward 15 - Aminabad", "localities": [
+          {"id": "lko-aminabad", "name": "Aminabad", "lat": 26.8480, "lng": 80.9290},
+          {"id": "lko-latouche", "name": "Latouche Road", "lat": 26.8530, "lng": 80.9250}]}]},
+      {"id": "lko-z4", "name": "Zone 4 (East)", "wards": [
+        {"id": "lko-w41", "name": "Ward 41 - Gomti Nagar", "localities": [
+          {"id": "lko-gomtinagar", "name": "Gomti Nagar Vipul Khand", "lat": 26.8540, "lng": 81.0010},
+          {"id": "lko-vibhuti", "name": "Vibhuti Khand", "lat": 26.8620, "lng": 80.9960}]},
+        {"id": "lko-w44", "name": "Ward 44 - Indira Nagar", "localities": [
+          {"id": "lko-indiranagar", "name": "Indira Nagar Sector 14", "lat": 26.8800, "lng": 80.9950},
+          {"id": "lko-munshipulia", "name": "Munshi Pulia", "lat": 26.8870, "lng": 81.0060}]}]},
+      {"id": "lko-z6", "name": "Zone 6 (South)", "wards": [
+        {"id": "lko-w63", "name": "Ward 63 - Alambagh", "localities": [
+          {"id": "lko-alambagh", "name": "Alambagh Bus Stand", "lat": 26.8150, "lng": 80.9000},
+          {"id": "lko-charbagh", "name": "Charbagh", "lat": 26.8320, "lng": 80.9200}]}]}]},
+    {"id": "pat", "name": "Patna", "zones": [
+      {"id": "pat-nc", "name": "New Capital Circle", "wards": [
+        {"id": "pat-w22", "name": "Ward 22 - Boring Road", "localities": [
+          {"id": "pat-boring", "name": "Boring Road", "lat": 25.6115, "lng": 85.1170},
+          {"id": "pat-patliputra", "name": "Patliputra Colony", "lat": 25.6250, "lng": 85.1030}]},
+        {"id": "pat-w24", "name": "Ward 24 - Bailey Road", "localities": [
+          {"id": "pat-bailey", "name": "Bailey Road", "lat": 25.6090, "lng": 85.0950}]}]},
+      {"id": "pat-kb", "name": "Kankarbagh Circle", "wards": [
+        {"id": "pat-w45", "name": "Ward 45 - Kankarbagh", "localities": [
+          {"id": "pat-kankarbagh", "name": "Kankarbagh Colony", "lat": 25.5940, "lng": 85.1600},
+          {"id": "pat-rajendranagar", "name": "Rajendra Nagar", "lat": 25.6050, "lng": 85.1600}]}]},
+      {"id": "pat-pc", "name": "Patna City Circle", "wards": [
+        {"id": "pat-w60", "name": "Ward 60 - Patna City", "localities": [
+          {"id": "pat-patnacity", "name": "Patna Sahib", "lat": 25.5950, "lng": 85.2200}]}]}]},
+    {"id": "del", "name": "Delhi", "zones": [
+      {"id": "del-kb", "name": "Karol Bagh Zone", "wards": [
+        {"id": "del-w84", "name": "Ward 84 - Karol Bagh", "localities": [
+          {"id": "del-karolbagh", "name": "Karol Bagh Market", "lat": 28.6519, "lng": 77.1909},
+          {"id": "del-rajendraplace", "name": "Rajendra Place", "lat": 28.6420, "lng": 77.1780}]}]},
+      {"id": "del-south", "name": "South Zone", "wards": [
+        {"id": "del-w150", "name": "Ward 150 - Lajpat Nagar", "localities": [
+          {"id": "del-lajpat", "name": "Lajpat Nagar II", "lat": 28.5677, "lng": 77.2433}]},
+        {"id": "del-w168", "name": "Ward 168 - Saket", "localities": [
+          {"id": "del-saket", "name": "Saket Block J", "lat": 28.5245, "lng": 77.2066}]}]},
+      {"id": "del-west", "name": "West Zone", "wards": [
+        {"id": "del-w101", "name": "Ward 101 - Rajouri Garden", "localities": [
+          {"id": "del-rajouri", "name": "Rajouri Garden", "lat": 28.6490, "lng": 77.1230}]},
+        {"id": "del-w32", "name": "Ward 32 - Rohini", "localities": [
+          {"id": "del-rohini", "name": "Rohini Sector 7", "lat": 28.7150, "lng": 77.1150}]}]}]}
+  ]
+}

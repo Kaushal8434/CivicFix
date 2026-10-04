@@ -1,0 +1,18 @@
+# Core (text model)
+numpy
+pandas
+scikit-learn
+# Image model  (for NVIDIA GPU install torch/torchvision from https://pytorch.org/get-started/locally/ with CUDA)
+torch
+torchvision
+pillow
+onnx
+onnxscript
+onnxruntime
+# Generative AI (Stable Diffusion)
+diffusers
+transformers
+accelerate
+safetensors
+# Dataset download
+kaggle

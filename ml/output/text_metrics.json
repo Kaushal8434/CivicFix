@@ -1,0 +1,105 @@
+{
+  "category": {
+    "damaged_infrastructure": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "drainage": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "garbage": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "other": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "pothole_road_damage": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "road_blockage": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "streetlight": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "water_leakage": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 300.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2400.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2400.0
+    }
+  },
+  "severity": {
+    "high": {
+      "precision": 0.9969924812030075,
+      "recall": 1.0,
+      "f1-score": 0.9984939759036144,
+      "support": 663.0
+    },
+    "low": {
+      "precision": 1.0,
+      "recall": 0.995475113122172,
+      "f1-score": 0.9977324263038548,
+      "support": 663.0
+    },
+    "medium": {
+      "precision": 0.9990697674418605,
+      "recall": 1.0,
+      "f1-score": 0.9995346672871103,
+      "support": 1074.0
+    },
+    "accuracy": 0.99875,
+    "macro avg": {
+      "precision": 0.998687416214956,
+      "recall": 0.9984917043740573,
+      "f1-score": 0.9985870231648598,
+      "support": 2400.0
+    },
+    "weighted avg": {
+      "precision": 0.9987528938625633,
+      "recall": 0.99875,
+      "f1-score": 0.9987493072207951,
+      "support": 2400.0
+    }
+  },
+  "category_accuracy": 1.0,
+  "severity_accuracy": 0.9988,
+  "train_rows": 9600,
+  "test_rows": 2400,
+  "handwritten_category_accuracy": 0.9667,
+  "handwritten_severity_accuracy": 0.5333,
+  "handwritten_rows": 30
+}

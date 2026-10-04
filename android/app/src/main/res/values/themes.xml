@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.CivicFix" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#0B5D4B</item>
+    </style>
+    <color name="ic_launcher_background">#0B5D4B</color>
+</resources>

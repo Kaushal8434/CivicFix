@@ -1,0 +1,31 @@
+{
+  "_note": "Routing table and SLA targets. SLA days are illustrative prototype values (report section 4.3), not official government deadlines.",
+  "departments": [
+    {"id": "roads", "name": "Roads & Public Works Department", "officerRole": "Assistant Engineer (Roads)"},
+    {"id": "electrical", "name": "Electrical / Streetlight Department", "officerRole": "Junior Engineer (Electrical)"},
+    {"id": "water", "name": "Water Supply Department", "officerRole": "Assistant Engineer (Water Works)"},
+    {"id": "sewerage", "name": "Drainage & Sewerage Department", "officerRole": "Assistant Engineer (Sewerage)"},
+    {"id": "sanitation", "name": "Municipal Sanitation Department", "officerRole": "Sanitary Inspector"},
+    {"id": "enforcement", "name": "Traffic & Encroachment Removal Cell", "officerRole": "Enforcement Officer"},
+    {"id": "civil", "name": "Municipal Civil Works (Public Infrastructure)", "officerRole": "Junior Engineer (Civil)"},
+    {"id": "general", "name": "General Grievance Cell", "officerRole": "Grievance Officer"}
+  ],
+  "categories": [
+    {"key": "pothole_road_damage", "label": "Pothole / Road Damage", "emoji": "🛣️", "department": "roads", "slaDays": {"low": 21, "medium": 14, "high": 3}},
+    {"key": "streetlight", "label": "Streetlight Not Working", "emoji": "💡", "department": "electrical", "slaDays": {"low": 10, "medium": 7, "high": 2}},
+    {"key": "water_leakage", "label": "Water Leakage", "emoji": "🚰", "department": "water", "slaDays": {"low": 7, "medium": 4, "high": 1}},
+    {"key": "drainage", "label": "Drainage / Sewer Problem", "emoji": "🕳️", "department": "sewerage", "slaDays": {"low": 7, "medium": 4, "high": 1}},
+    {"key": "garbage", "label": "Garbage Accumulation", "emoji": "🗑️", "department": "sanitation", "slaDays": {"low": 3, "medium": 2, "high": 1}},
+    {"key": "road_blockage", "label": "Road Blockage", "emoji": "🚧", "department": "enforcement", "slaDays": {"low": 5, "medium": 2, "high": 1}},
+    {"key": "damaged_infrastructure", "label": "Damaged Public Infrastructure", "emoji": "🏗️", "department": "civil", "slaDays": {"low": 21, "medium": 10, "high": 2}},
+    {"key": "other", "label": "Other Civic Issue", "emoji": "📝", "department": "general", "slaDays": {"low": 21, "medium": 14, "high": 7}}
+  ],
+  "escalation": {
+    "levels": [
+      {"level": 1, "afterOverdueDays": 0, "to": "Executive Engineer / Zonal Officer"},
+      {"level": 2, "afterOverdueDays": 3, "to": "Additional Municipal Commissioner"},
+      {"level": 3, "afterOverdueDays": 7, "to": "Municipal Commissioner"}
+    ]
+  },
+  "safetyKeywords": ["accident", "injur", "electrocut", "shock", "live wire", "current", "school", "children", "kids", "hospital", "ambulance", "flood", "danger", "fatal", "death", "life risk", "fall in", "haadsa", "emergency", "collapse"]
+}

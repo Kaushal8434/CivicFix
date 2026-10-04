@@ -1,0 +1,31 @@
+text,category,severity
+"The road outside my house has a pothole so deep my scooter tyre burst",pothole_road_damage,high
+"Small cracks appearing on the colony road, please resurface",pothole_road_damage,low
+"Main road near the flyover is full of gaddhe, cars swerving dangerously",pothole_road_damage,high
+"lane road broken after pipeline work, difficult to drive",pothole_road_damage,medium
+"None of the lights in block C are working, women feel unsafe walking at night",streetlight,high
+"one street lamp near house no 42 is fused",streetlight,low
+"pole light blinking whole night",streetlight,low
+"electric wire of the street light pole touching the ground, current can come",streetlight,high
+"Water is leaking from the municipal pipe since morning, lot of wastage",water_leakage,medium
+"the underground water line burst and road is flooded with water",water_leakage,high
+"small leak at the water meter near the gate",water_leakage,low
+"supply pipe cracked, dirty water mixing in drinking water",water_leakage,high
+"The nali in front of our shop is choked and dirty water spreading",drainage,medium
+"sewer line overflowing into houses, unbearable smell",drainage,high
+"drain cover partially blocked with leaves",drainage,low
+"after rain water not draining, whole lane waterlogged",drainage,medium
+"Garbage truck hasn't come for 10 days, waste piling up",garbage,medium
+"someone dumped construction waste and trash near the school gate",garbage,medium
+"litter lying around the park bench",garbage,low
+"kooda jalaya ja raha hai, smoke entering homes, kids coughing",garbage,high
+"A big neem tree fell across the road during the storm, no vehicle can pass",road_blockage,high
+"builder has kept sand and gravel on the street for weeks",road_blockage,medium
+"vendors carts blocking half the lane",road_blockage,low
+"Manhole without lid on the footpath, someone can fall in",damaged_infrastructure,high
+"swing in the children park is broken",damaged_infrastructure,medium
+"footpath slabs loose and broken",damaged_infrastructure,medium
+"bus shelter roof leaking",damaged_infrastructure,low
+"Too many stray dogs in the colony",other,medium
+"loud DJ music every night after 11 pm",other,low
+"please plant more trees along the road",other,low
