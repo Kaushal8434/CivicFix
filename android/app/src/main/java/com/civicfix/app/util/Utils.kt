@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -104,6 +105,22 @@ object Notifier {
             .setAutoCancel(true)
             .build()
         NotificationManagerCompat.from(context).notify(id, n)
+    }
+}
+
+object Maps {
+    fun openGoogleMaps(context: Context, lat: Double, lng: Double, label: String = "") {
+        val encodedLabel = Uri.encode(label)
+        val uri = Uri.parse("geo:$lat,$lng?q=$lat,$lng($encodedLabel)")
+        val mapIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage("com.google.android.apps.maps")
+        }
+        val fallbackIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/search/?api=1&query=$lat,$lng"))
+        try {
+            context.startActivity(mapIntent)
+        } catch (e: Exception) {
+            runCatching { context.startActivity(fallbackIntent) }
+        }
     }
 }
 

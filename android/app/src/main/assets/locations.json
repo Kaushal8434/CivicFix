@@ -1,53 +1,275 @@
 {
-  "_note": "Demo administrative hierarchy for the prototype. Zone/ward names and coordinates are illustrative, not official boundaries.",
+  "_note": "Administrative hierarchy for Delhi and Haryana.",
   "cities": [
-    {"id": "lko", "name": "Lucknow", "zones": [
-      {"id": "lko-z1", "name": "Zone 1 (Central)", "wards": [
-        {"id": "lko-w12", "name": "Ward 12 - Hazratganj", "localities": [
-          {"id": "lko-hazratganj", "name": "Hazratganj Market", "lat": 26.8467, "lng": 80.9462},
-          {"id": "lko-narhi", "name": "Narhi", "lat": 26.8420, "lng": 80.9510}]},
-        {"id": "lko-w15", "name": "Ward 15 - Aminabad", "localities": [
-          {"id": "lko-aminabad", "name": "Aminabad", "lat": 26.8480, "lng": 80.9290},
-          {"id": "lko-latouche", "name": "Latouche Road", "lat": 26.8530, "lng": 80.9250}]}]},
-      {"id": "lko-z4", "name": "Zone 4 (East)", "wards": [
-        {"id": "lko-w41", "name": "Ward 41 - Gomti Nagar", "localities": [
-          {"id": "lko-gomtinagar", "name": "Gomti Nagar Vipul Khand", "lat": 26.8540, "lng": 81.0010},
-          {"id": "lko-vibhuti", "name": "Vibhuti Khand", "lat": 26.8620, "lng": 80.9960}]},
-        {"id": "lko-w44", "name": "Ward 44 - Indira Nagar", "localities": [
-          {"id": "lko-indiranagar", "name": "Indira Nagar Sector 14", "lat": 26.8800, "lng": 80.9950},
-          {"id": "lko-munshipulia", "name": "Munshi Pulia", "lat": 26.8870, "lng": 81.0060}]}]},
-      {"id": "lko-z6", "name": "Zone 6 (South)", "wards": [
-        {"id": "lko-w63", "name": "Ward 63 - Alambagh", "localities": [
-          {"id": "lko-alambagh", "name": "Alambagh Bus Stand", "lat": 26.8150, "lng": 80.9000},
-          {"id": "lko-charbagh", "name": "Charbagh", "lat": 26.8320, "lng": 80.9200}]}]}]},
-    {"id": "pat", "name": "Patna", "zones": [
-      {"id": "pat-nc", "name": "New Capital Circle", "wards": [
-        {"id": "pat-w22", "name": "Ward 22 - Boring Road", "localities": [
-          {"id": "pat-boring", "name": "Boring Road", "lat": 25.6115, "lng": 85.1170},
-          {"id": "pat-patliputra", "name": "Patliputra Colony", "lat": 25.6250, "lng": 85.1030}]},
-        {"id": "pat-w24", "name": "Ward 24 - Bailey Road", "localities": [
-          {"id": "pat-bailey", "name": "Bailey Road", "lat": 25.6090, "lng": 85.0950}]}]},
-      {"id": "pat-kb", "name": "Kankarbagh Circle", "wards": [
-        {"id": "pat-w45", "name": "Ward 45 - Kankarbagh", "localities": [
-          {"id": "pat-kankarbagh", "name": "Kankarbagh Colony", "lat": 25.5940, "lng": 85.1600},
-          {"id": "pat-rajendranagar", "name": "Rajendra Nagar", "lat": 25.6050, "lng": 85.1600}]}]},
-      {"id": "pat-pc", "name": "Patna City Circle", "wards": [
-        {"id": "pat-w60", "name": "Ward 60 - Patna City", "localities": [
-          {"id": "pat-patnacity", "name": "Patna Sahib", "lat": 25.5950, "lng": 85.2200}]}]}]},
-    {"id": "del", "name": "Delhi", "zones": [
-      {"id": "del-kb", "name": "Karol Bagh Zone", "wards": [
-        {"id": "del-w84", "name": "Ward 84 - Karol Bagh", "localities": [
-          {"id": "del-karolbagh", "name": "Karol Bagh Market", "lat": 28.6519, "lng": 77.1909},
-          {"id": "del-rajendraplace", "name": "Rajendra Place", "lat": 28.6420, "lng": 77.1780}]}]},
-      {"id": "del-south", "name": "South Zone", "wards": [
-        {"id": "del-w150", "name": "Ward 150 - Lajpat Nagar", "localities": [
-          {"id": "del-lajpat", "name": "Lajpat Nagar II", "lat": 28.5677, "lng": 77.2433}]},
-        {"id": "del-w168", "name": "Ward 168 - Saket", "localities": [
-          {"id": "del-saket", "name": "Saket Block J", "lat": 28.5245, "lng": 77.2066}]}]},
-      {"id": "del-west", "name": "West Zone", "wards": [
-        {"id": "del-w101", "name": "Ward 101 - Rajouri Garden", "localities": [
-          {"id": "del-rajouri", "name": "Rajouri Garden", "lat": 28.6490, "lng": 77.1230}]},
-        {"id": "del-w32", "name": "Ward 32 - Rohini", "localities": [
-          {"id": "del-rohini", "name": "Rohini Sector 7", "lat": 28.7150, "lng": 77.1150}]}]}]}
+    {
+      "id": "del",
+      "name": "Delhi",
+      "zones": [
+        {
+          "id": "del-central",
+          "name": "Central & New Delhi Zone",
+          "wards": [
+            {
+              "id": "del-w1",
+              "name": "Ward 1 - Connaught Place",
+              "localities": [
+                {"id": "del-connaught", "name": "Connaught Place", "lat": 28.6315, "lng": 77.2167},
+                {"id": "del-janpath", "name": "Janpath", "lat": 28.6256, "lng": 77.2183},
+                {"id": "del-rajivchowk", "name": "Rajiv Chowk Metro Area", "lat": 28.6328, "lng": 77.2197},
+                {"id": "del-indiagate", "name": "India Gate Area", "lat": 28.6129, "lng": 77.2295}
+              ]
+            },
+            {
+              "id": "del-w2",
+              "name": "Ward 2 - Karol Bagh",
+              "localities": [
+                {"id": "del-karolbagh", "name": "Karol Bagh Market", "lat": 28.6519, "lng": 77.1909},
+                {"id": "del-rajendraplace", "name": "Rajendra Place", "lat": 28.6420, "lng": 77.1780},
+                {"id": "del-patelnagar", "name": "Patel Nagar", "lat": 28.6502, "lng": 77.1581}
+              ]
+            },
+            {
+              "id": "del-w3",
+              "name": "Ward 3 - Paharganj & Old Delhi",
+              "localities": [
+                {"id": "del-paharganj", "name": "Paharganj Main Market", "lat": 28.6433, "lng": 77.2120},
+                {"id": "del-chandnichowk", "name": "Chandni Chowk", "lat": 28.6506, "lng": 77.2303},
+                {"id": "del-daryaganj", "name": "Daryaganj", "lat": 28.6422, "lng": 77.2405}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "del-south",
+          "name": "South Delhi Zone",
+          "wards": [
+            {
+              "id": "del-w4",
+              "name": "Ward 4 - Lajpat Nagar",
+              "localities": [
+                {"id": "del-lajpat", "name": "Lajpat Nagar II", "lat": 28.5677, "lng": 77.2433},
+                {"id": "del-amarcolony", "name": "Amar Colony", "lat": 28.5605, "lng": 77.2480},
+                {"id": "del-defencecolony", "name": "Defence Colony", "lat": 28.5713, "lng": 77.2323}
+              ]
+            },
+            {
+              "id": "del-w5",
+              "name": "Ward 5 - Saket & Hauz Khas",
+              "localities": [
+                {"id": "del-saket", "name": "Saket Block J", "lat": 28.5245, "lng": 77.2066},
+                {"id": "del-hauzkhas", "name": "Hauz Khas Village", "lat": 28.5494, "lng": 77.2001},
+                {"id": "del-malviyanagar", "name": "Malviya Nagar", "lat": 28.5358, "lng": 77.2091}
+              ]
+            },
+            {
+              "id": "del-w6",
+              "name": "Ward 6 - Greater Kailash & Vasant Kunj",
+              "localities": [
+                {"id": "del-gk1", "name": "Greater Kailash I", "lat": 28.5529, "lng": 77.2346},
+                {"id": "del-nehruplace", "name": "Nehru Place", "lat": 28.5491, "lng": 77.2523},
+                {"id": "del-vasantkunj", "name": "Vasant Kunj Sector B", "lat": 28.5292, "lng": 77.1539}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "del-west",
+          "name": "West Delhi Zone",
+          "wards": [
+            {
+              "id": "del-w7",
+              "name": "Ward 7 - Rajouri Garden",
+              "localities": [
+                {"id": "del-rajouri", "name": "Rajouri Garden", "lat": 28.6490, "lng": 77.1230},
+                {"id": "del-punjabibagh", "name": "Punjabi Bagh", "lat": 28.6675, "lng": 77.1258},
+                {"id": "del-tagoregarden", "name": "Tagore Garden", "lat": 28.6441, "lng": 77.1130}
+              ]
+            },
+            {
+              "id": "del-w8",
+              "name": "Ward 8 - Dwarka",
+              "localities": [
+                {"id": "del-dwarkasec6", "name": "Dwarka Sector 6", "lat": 28.5921, "lng": 77.0620},
+                {"id": "del-dwarkasec10", "name": "Dwarka Sector 10 Market", "lat": 28.5815, "lng": 77.0560},
+                {"id": "del-dwarkasec21", "name": "Dwarka Sector 21", "lat": 28.5522, "lng": 77.0588}
+              ]
+            },
+            {
+              "id": "del-w9",
+              "name": "Ward 9 - Janakpuri & Uttam Nagar",
+              "localities": [
+                {"id": "del-janakpuri", "name": "Janakpuri District Centre", "lat": 28.6280, "lng": 77.0780},
+                {"id": "del-tilaknagar", "name": "Tilak Nagar", "lat": 28.6366, "lng": 77.0963},
+                {"id": "del-uttamnagar", "name": "Uttam Nagar East", "lat": 28.6225, "lng": 77.0544}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "del-north",
+          "name": "North Delhi Zone",
+          "wards": [
+            {
+              "id": "del-w10",
+              "name": "Ward 10 - Rohini & Pitampura",
+              "localities": [
+                {"id": "del-rohini", "name": "Rohini Sector 7", "lat": 28.7150, "lng": 77.1150},
+                {"id": "del-rohinisec11", "name": "Rohini Sector 11", "lat": 28.7300, "lng": 77.1180},
+                {"id": "del-pitampura", "name": "Pitampura TV Tower Area", "lat": 28.6980, "lng": 77.1400}
+              ]
+            },
+            {
+              "id": "del-w11",
+              "name": "Ward 11 - Civil Lines & Model Town",
+              "localities": [
+                {"id": "del-civillines", "name": "Civil Lines", "lat": 28.6814, "lng": 77.2228},
+                {"id": "del-modeltowndelhi", "name": "Model Town", "lat": 28.7029, "lng": 77.1937},
+                {"id": "del-mukherjeenagar", "name": "Mukherjee Nagar", "lat": 28.7093, "lng": 77.2155}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "del-east",
+          "name": "East Delhi Zone",
+          "wards": [
+            {
+              "id": "del-w12",
+              "name": "Ward 12 - Laxmi Nagar & Preet Vihar",
+              "localities": [
+                {"id": "del-laxminagar", "name": "Laxmi Nagar Market", "lat": 28.6304, "lng": 77.2772},
+                {"id": "del-preetvihar", "name": "Preet Vihar", "lat": 28.6416, "lng": 77.2952},
+                {"id": "del-nirmanvihar", "name": "Nirman Vihar", "lat": 28.6368, "lng": 77.2868}
+              ]
+            },
+            {
+              "id": "del-w13",
+              "name": "Ward 13 - Mayur Vihar",
+              "localities": [
+                {"id": "del-mayurvihar1", "name": "Mayur Vihar Phase 1", "lat": 28.6080, "lng": 77.2950},
+                {"id": "del-mayurvihar2", "name": "Mayur Vihar Phase 2", "lat": 28.6180, "lng": 77.3080},
+                {"id": "del-vasundhara", "name": "Vasundhara Enclave", "lat": 28.5980, "lng": 77.3220}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "har",
+      "name": "Haryana",
+      "zones": [
+        {
+          "id": "har-gurugram",
+          "name": "Gurugram Zone",
+          "wards": [
+            {
+              "id": "har-w1",
+              "name": "Ward 1 - Cyber City & DLF",
+              "localities": [
+                {"id": "har-cybercity", "name": "DLF Cyber City", "lat": 28.4950, "lng": 77.0890},
+                {"id": "har-dlfphase1", "name": "DLF Phase 1", "lat": 28.4730, "lng": 77.0980},
+                {"id": "har-dlfphase3", "name": "DLF Phase 3", "lat": 28.4910, "lng": 77.1020},
+                {"id": "har-golfcourse", "name": "Golf Course Road", "lat": 28.4590, "lng": 77.0980}
+              ]
+            },
+            {
+              "id": "har-w2",
+              "name": "Ward 2 - MG Road & Sector 29",
+              "localities": [
+                {"id": "har-mgroad", "name": "MG Road Metro Station Area", "lat": 28.4795, "lng": 77.0801},
+                {"id": "har-sec29", "name": "Sector 29 Market", "lat": 28.4680, "lng": 77.0630},
+                {"id": "har-sec14ggn", "name": "Sector 14 Gurugram", "lat": 28.4720, "lng": 77.0420}
+              ]
+            },
+            {
+              "id": "har-w3",
+              "name": "Ward 3 - Sohna Road & Sector 56",
+              "localities": [
+                {"id": "har-sohnaroad", "name": "Sohna Road Sector 48", "lat": 28.4120, "lng": 77.0410},
+                {"id": "har-sec56", "name": "Sector 56 HUDA Market", "lat": 28.4320, "lng": 77.1030},
+                {"id": "har-sec47", "name": "Sector 47 Gurugram", "lat": 28.4280, "lng": 77.0490}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "har-faridabad",
+          "name": "Faridabad Zone",
+          "wards": [
+            {
+              "id": "har-w4",
+              "name": "Ward 4 - NIT Faridabad",
+              "localities": [
+                {"id": "har-nit1", "name": "NIT 1 Faridabad", "lat": 28.3910, "lng": 77.3010},
+                {"id": "har-nit5", "name": "NIT 5 Market", "lat": 28.3840, "lng": 77.2940},
+                {"id": "har-sec15faridabad", "name": "Sector 15 Faridabad", "lat": 28.3980, "lng": 77.3180}
+              ]
+            },
+            {
+              "id": "har-w5",
+              "name": "Ward 5 - Greater Faridabad & Ballabhgarh",
+              "localities": [
+                {"id": "har-sec81", "name": "Sector 81 Greater Faridabad", "lat": 28.3960, "lng": 77.3520},
+                {"id": "har-ballabhgarh", "name": "Ballabhgarh Market", "lat": 28.3370, "lng": 77.3240}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "har-panchkula",
+          "name": "Panchkula & Ambala Zone",
+          "wards": [
+            {
+              "id": "har-w6",
+              "name": "Ward 6 - Panchkula City",
+              "localities": [
+                {"id": "har-panchkula5", "name": "Sector 5 Panchkula", "lat": 30.6950, "lng": 76.8520},
+                {"id": "har-panchkula11", "name": "Sector 11 Panchkula", "lat": 30.6900, "lng": 76.8450},
+                {"id": "har-panchkula20", "name": "Sector 20 Panchkula", "lat": 30.6720, "lng": 76.8580}
+              ]
+            },
+            {
+              "id": "har-w7",
+              "name": "Ward 7 - Ambala Cantt & City",
+              "localities": [
+                {"id": "har-ambalacantt", "name": "Ambala Cantt Railway Station Area", "lat": 30.3340, "lng": 76.8380},
+                {"id": "har-ambalacity", "name": "Ambala City Model Town", "lat": 30.3780, "lng": 76.7760}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "har-karnalpanipat",
+          "name": "Karnal, Panipat & Hisar Zone",
+          "wards": [
+            {
+              "id": "har-w8",
+              "name": "Ward 8 - Karnal City",
+              "localities": [
+                {"id": "har-modeltownkarnal", "name": "Model Town Karnal", "lat": 29.6890, "lng": 76.9850},
+                {"id": "har-sec12karnal", "name": "Sector 12 City Centre", "lat": 29.6820, "lng": 76.9940}
+              ]
+            },
+            {
+              "id": "har-w9",
+              "name": "Ward 9 - Panipat City",
+              "localities": [
+                {"id": "har-modeltownpanipat", "name": "Model Town Panipat", "lat": 29.3950, "lng": 76.9690},
+                {"id": "har-gtroadpanipat", "name": "GT Road Panipat", "lat": 29.3900, "lng": 76.9750}
+              ]
+            },
+            {
+              "id": "har-w10",
+              "name": "Ward 10 - Hisar City",
+              "localities": [
+                {"id": "har-modeltownhisar", "name": "Model Town Hisar", "lat": 29.1510, "lng": 75.7230},
+                {"id": "har-urbanestatehisar", "name": "Urban Estate Sector 14", "lat": 29.1430, "lng": 75.7410}
+              ]
+            }
+          ]
+        }
+      ]
+    }
   ]
 }

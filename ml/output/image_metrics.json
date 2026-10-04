@@ -1,0 +1,56 @@
+{
+  "model": "mobilenet_v3_large (ImageNet) fine-tuned",
+  "data": "data\\clean",
+  "train_real": 5917,
+  "train_synthetic": 0,
+  "val": 967,
+  "test": 1210,
+  "best_val_macro_f1": 0.7877,
+  "test_accuracy": 0.8446,
+  "test_macro_f1": 0.7738,
+  "temperature": 0.815,
+  "confident_share": 0.94,
+  "confident_accuracy": 0.8761,
+  "per_class": {
+    "pothole_road_damage": {
+      "precision": 0.893,
+      "recall": 0.929,
+      "test_images": 323
+    },
+    "streetlight": {
+      "precision": 0.964,
+      "recall": 0.961,
+      "test_images": 279
+    },
+    "water_leakage": {
+      "precision": 0.75,
+      "recall": 0.444,
+      "test_images": 54
+    },
+    "drainage": {
+      "precision": 0.735,
+      "recall": 0.621,
+      "test_images": 58
+    },
+    "garbage": {
+      "precision": 0.778,
+      "recall": 0.84,
+      "test_images": 100
+    },
+    "road_blockage": {
+      "precision": 0.676,
+      "recall": 0.71,
+      "test_images": 100
+    },
+    "damaged_infrastructure": {
+      "precision": 0.775,
+      "recall": 0.843,
+      "test_images": 204
+    },
+    "other": {
+      "precision": 0.838,
+      "recall": 0.728,
+      "test_images": 92
+    }
+  }
+}

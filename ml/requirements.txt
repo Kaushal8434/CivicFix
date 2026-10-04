@@ -14,5 +14,8 @@ diffusers
 transformers
 accelerate
 safetensors
-# Dataset download
-kaggle
+# Dataset download (public Kaggle datasets download anonymously) + web photos
+kagglehub
+requests
+# Dataset cleaning with CLIP (01c_clean_dataset.py)
+open_clip_torch

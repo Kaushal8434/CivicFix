@@ -1,0 +1,40 @@
+{
+  "labels": [
+    "pothole_road_damage",
+    "streetlight",
+    "water_leakage",
+    "drainage",
+    "garbage",
+    "road_blockage",
+    "damaged_infrastructure",
+    "other"
+  ],
+  "input_size": 224,
+  "mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "layout": "NCHW",
+  "resize": "squash",
+  "test_accuracy": 0.8446,
+  "test_macro_f1": 0.7738,
+  "test_images": 1210,
+  "train_images": 5917,
+  "temperature": 0.815,
+  "per_class_recall": {
+    "pothole_road_damage": 0.929,
+    "streetlight": 0.961,
+    "water_leakage": 0.444,
+    "drainage": 0.621,
+    "garbage": 0.84,
+    "road_blockage": 0.71,
+    "damaged_infrastructure": 0.843,
+    "other": 0.728
+  }
+}

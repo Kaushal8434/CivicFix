@@ -23,8 +23,10 @@ CivicFix/
 │       │   └── locations.json           (City → Zone → Ward → Locality tree)
 │       └── java/com/civicfix/app/       ← app source code (see section 6)
 └── ml/                           ← Python training pipeline
-    ├── config.py                        (categories, dataset list, Stable Diffusion prompts)
-    ├── 01_download_datasets.py          (download + sort real photo datasets)
+    ├── config.py                        (categories, dataset list, web queries, CLIP prompts, Stable Diffusion prompts)
+    ├── 01_download_datasets.py          (download + sort real photo datasets – Kaggle via kagglehub, no token needed)
+    ├── 01b_collect_web_images.py        (openly-licensed photos from Wikimedia Commons + Openverse, with attribution)
+    ├── 01c_clean_dataset.py             (CLIP ViT-L/14 label check, junk filter, near-duplicate removal → data/clean/)
     ├── 02_generate_synthetic_images.py  (Generative AI: Stable Diffusion image synthesis)
     ├── 03_train_image_classifier.py     (train MobileNetV3 photo model → ONNX)
     ├── 04_build_text_dataset.py         (build complaint-text dataset)
@@ -42,10 +44,10 @@ CivicFix/
 |---|---|
 | Android app (all screens and workflows) | ✅ Built successfully (`CivicFix-debug.apk`) |
 | Complaint-text AI model (category + severity) | ✅ Trained and bundled in the app |
-| Photo-recognition training pipeline (real data + Generative AI) | ✅ Written and tested end to end (train → ONNX export → ONNX Runtime load) |
-| **Photo-recognition model weights** | ⏳ **You need to run steps 01–03 on your PC** (section 5.3). It needs the Kaggle downloads and a GPU for Stable Diffusion. It could not be trained inside this session. |
+| Photo-recognition model (8 classes) | ✅ Trained on 5,917 CLIP-cleaned real photos and bundled in the app. **84.5% accuracy / 0.774 macro-F1** on 1,210 held-out real photos (section 5.2) |
+| In-app camera + crash-safe report wizard | ✅ Tested on the emulator (capture, gallery, activity recreation) |
 
-Until the photo model is trained, the app still works. It suggests the category from the description text, and the citizen picks or confirms it manually. Once you run `03_train_image_classifier.py`, the model is copied into `android/app/src/main/assets/` automatically. Rebuild the app and photo recognition is switched on. No code changes are needed.
+To retrain the photo model (for example after adding your own photos), follow section 5.3. The new model is copied into `android/app/src/main/assets/` automatically; rebuild the app and it is used. No code changes are needed.
 
 ---
 
@@ -66,7 +68,7 @@ Command line: `cd android` then `gradlew assembleDebug`. The output is `app/buil
 - **Department officer**: pick a department and handle its complaints.
 - **Supervisor**: sees every department plus escalations.
 
-The app comes with 7 sample complaints in Lucknow, Patna and Delhi, so the dashboards are not empty.
+The app comes with 7 sample complaints in Delhi and Haryana, so the dashboards are not empty.
 
 ---
 
@@ -76,7 +78,7 @@ The app comes with 7 sample complaints in Lucknow, Patna and Delhi, so the dashb
 |---|---|---|
 | 4.1 Step 1 – Location | City → Town/Zone → Ward → Locality dropdowns, **or** GPS button that picks the nearest locality automatically | `ReportWizardScreen.kt`, `nearestLocality()` in `Engines.kt` |
 | 4.1 Step 2 – Problem | 8 categories; the **AI pre-selects the category and severity** from the photo and description | `AiAnalyzer.analyze()` |
-| 4.1 Step 3 – Evidence | Camera / gallery photo + description. Creates the complaint ID `CF-YYYYMMDD-NNNN` with a timestamp | `PhotoInput.kt`, `ComplaintRepository.newId()` |
+| 4.1 Step 3 – Evidence | **In-app camera** (CameraX: flash, front/back, framing guide) or gallery photo + description. The AI's guess is shown on the photo immediately. If camera permission is refused, the phone's camera app is used. The whole report survives Android restarting the app in the background. Creates the complaint ID `CF-YYYYMMDD-NNNN` with a timestamp | `CameraCapture.kt`, `PhotoInput.kt`, `ComplaintRepository.newId()` |
 | 4.1 Step 4 – Tracking | Status pills, SLA progress bar, target date, full timeline | `ComplaintDetailScreen.kt` |
 | 4.1 Step 5 – Resolution | Officer uploads a **mandatory after-photo** and an Action Taken note | `OfficerActions()` |
 | 4.1 Step 6 – Verification | Citizen taps **"Yes, fixed" → Closed** or **"No, not fixed" → Reopened + escalated** with a new deadline | `CitizenVerification()` |
@@ -89,6 +91,7 @@ The app comes with 7 sample complaints in Lucknow, Patna and Delhi, so the dashb
 | 5.6 Government analytics | Totals, overdue, % resolved within SLA, verified/reopened counts, average resolution time by department, workload, hotspot localities, repeated problems | `AnalyticsScreen` |
 | Verification (extra) | **AI after-photo check**: if the after-photo still looks like the original problem, a warning is shown | `AiAnalyzer.checkAfterPhoto()` |
 | Notifications | Citizen gets a phone notification when a complaint is marked resolved | `Notifier.notify()` |
+| Maps | "Open in Google Maps" for the selected spot and for every complaint | `Maps.openGoogleMaps()` |
 | Demo | *AI models & demo* screen (🤖): "+1 day / +3 days" to **simulate time** and watch escalation happen live; "Reset demo" | `ModelInfoScreen`, `DemoClock` |
 
 ---
@@ -116,36 +119,61 @@ The app uses **two trained models** whose outputs are combined.
 
 The 100% on the template split is **not** a meaningful measure, because those sentences come from the same templates as the training data. The hand-written set is the realistic number. Severity is harder to learn from short texts, so the app adds **rule-based safety keywords** on top of it, and officers can change the severity. To improve it, add real complaints to `ml/data/text/extra_complaints.csv` (columns `text,category,severity`) and re-run steps 04 and 05.
 
-### 5.2 Model 2 – Photo-recognition model (Generative-AI-assisted training)
+### 5.2 Model 2 – Photo-recognition model (✅ trained)
 
 | | |
 |---|---|
 | Task | Recognise the civic problem in the citizen's photo (8 classes) |
 | Architecture | **MobileNetV3-Large**, pre-trained on ImageNet, **fine-tuned** (transfer learning) |
-| Training data | **Real photos** (public datasets, section 7) **+ synthetic photos generated with Generative AI** (Stable Diffusion) |
-| Generative AI | **SD-Turbo** (`stabilityai/sd-turbo`, a distilled Stable Diffusion text-to-image model) via Hugging Face **diffusers**. Up to 2,250 images from prompts = *subject × style* (e.g. "an overflowing open drain with dirty black water on a street" × "photo taken on a smartphone, Indian city"). Each image's prompt and seed are logged in `metadata.csv`. |
-| Why Generative AI | No good public datasets exist for **water leakage, drainage, road blockage and damaged infrastructure** in Indian streets. Stable Diffusion fills these gaps and balances the classes (400 images each for the rare classes, 150 for classes that already have real data). |
-| Training tricks | Frozen backbone for the first 2 epochs, AdamW + cosine LR, label smoothing 0.1, class-balanced sampling, augmentation (random crop, flip, colour jitter, rotation) |
-| Evaluation | Validation and test sets use **real photos only**, so accuracy reflects real citizen photos, not generated ones. A confusion matrix is saved to `ml/output/`. Use `--no-synthetic` to measure how much the generated images help (ablation). |
-| Deployment | Exported to **ONNX** (`civic_classifier.onnx`), run on the phone with **ONNX Runtime Mobile** (`ImageClassifier.kt`). Input `[1,3,224,224]`, output `[1,8]` logits. |
+| Raw data | 15,115 candidate photos: Kaggle datasets (4,598), Team16 Street-Light dataset (1,531), and openly-licensed web photos from **Wikimedia Commons + Openverse** (8,986, collected by `01b_collect_web_images.py`, licence and author of every photo in `ml/data/raw/web/attribution.csv`) |
+| Data cleaning | **OpenAI CLIP ViT-L/14** (zero-shot) checks every photo (`01c_clean_dataset.py`): curated photos are dropped when CLIP strongly disagrees with the folder label (e.g. 1,165 of the Kaggle "garbage" photos were actually clean streets); web photos are kept only when CLIP's top class is the searched category (p ≥ 0.35), and are moved to another class when CLIP is very sure (p ≥ 0.75); maps/documents/portraits are removed; near-duplicates (cosine ≥ 0.95) are removed so no photo appears in both train and test. **8,094 photos kept**, decisions in `ml/output/clean_report.csv`. |
+| Clean data per class | pothole 2,155 · streetlight 1,866 · damaged infrastructure 1,361 · garbage 668 · road blockage 668 · other 619 · drainage 391 · water leakage 366 |
+| Split | 73% train (5,917) / 12% validation (967) / 15% test (1,210), stratified per class |
+| Training | 25 epochs on an RTX 3050 (~75 min). TrivialAugmentWide + random crop/flip/blur/erasing, square-root class-balanced sampling, label smoothing 0.1, AdamW + one-cycle LR (backbone at 1/5 LR, frozen for 2 epochs), mixed precision. Best epoch chosen by validation macro-F1. |
+| Calibration | Temperature scaling (T = 0.82) fitted on the validation set and folded into the exported model, so the percentages shown in the app are meaningful |
+| Deployment | Exported to **ONNX** (`civic_classifier.onnx`, 16 MB; max difference to PyTorch 4.4e-06), run on the phone with **ONNX Runtime** (`ImageClassifier.kt`), averaging the photo and its mirror image. Input `[1,3,224,224]`, output `[1,8]` logits. |
+| Generative AI (optional) | `02_generate_synthetic_images.py` can add **SD-Turbo** (Stable Diffusion) images for the rare classes; the bundled model was trained on real photos only. |
+
+**Results on 1,210 held-out real photos (never seen in training):**
+
+| Class | Precision | Recall | Test photos |
+|---|---|---|---|
+| Pothole / road damage | 0.89 | 0.93 | 323 |
+| Streetlight | 0.96 | 0.96 | 279 |
+| Water leakage | 0.75 | **0.44** | 54 |
+| Drainage | 0.73 | 0.62 | 58 |
+| Garbage | 0.78 | 0.84 | 100 |
+| Road blockage | 0.68 | 0.71 | 100 |
+| Damaged infrastructure | 0.77 | 0.84 | 204 |
+| Other / no issue | 0.84 | 0.73 | 92 |
+| **Overall** | accuracy **84.5%** | macro-F1 **0.774** | 1,210 |
+
+When the model is at least 45% confident (94% of photos) it is right **87.6%** of the time; below that the app shows "Low confidence – please confirm". **Water leakage is the weak class** (few public photos; often confused with damaged infrastructure), so the description text and the citizen's confirmation matter most there. Note that the test labels were checked by CLIP, so real-world accuracy on blurry phone photos may be somewhat lower. The best way to improve the model is to add your own photos to `ml/data/real/<category>/` and re-run steps 1c and 3.
 
 ### 5.3 How to train the photo model on your PC
 
 ```bash
 cd ml
+python -m venv .venv && .venv\Scripts\activate
+# NVIDIA GPU: install CUDA PyTorch first
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
 pip install -r requirements.txt
-# For your NVIDIA RTX GPU, install CUDA PyTorch first:  https://pytorch.org/get-started/locally/
 
-# 1) Real datasets (needs a Kaggle API token in %USERPROFILE%\.kaggle\kaggle.json)
+# 1) Real datasets – public Kaggle datasets download anonymously (no token)
 python 01_download_datasets.py
-#    Optional: put your own photos into ml/data/real/<category>/
+#    Optional: put your own photos into ml/data/real/<category>/  (best way to improve accuracy)
 
-# 2) Generative AI – synthesise training photos with Stable Diffusion
-python 02_generate_synthetic_images.py --scale 0.1   # quick test (~225 images)
-python 02_generate_synthetic_images.py               # full run (~2,250 images)
+# 1b) Openly-licensed web photos for the rare classes (~1 h, writes attribution.csv)
+python 01b_collect_web_images.py --per-class 1000
 
-# 3) Train + export (copies the model into the Android app automatically)
-python 03_train_image_classifier.py --epochs 12
+# 1c) Clean everything with CLIP (needs ~2 GB download the first time)
+python 01c_clean_dataset.py
+
+# 2) Optional – Generative AI: synthesise extra photos with Stable Diffusion
+python 02_generate_synthetic_images.py --scale 0.1
+
+# 3) Train + export (copies the model into the Android app automatically, ~30 min on an RTX 3050)
+python 03_train_image_classifier.py --epochs 25 --workers 2
 
 # Text model (already done – re-run only if you change the data)
 python 04_build_text_dataset.py --rows 12000
@@ -181,7 +209,7 @@ UI (Compose screens) ──► Domain engines (routing, SLA, duplicates) ──�
 | File | Key classes / functions | Purpose |
 |---|---|---|
 | `CivicFixApp.kt` | `CivicFixApp` | Application class; creates and holds all services; saves the login session |
-| `MainActivity.kt` | `Nav`, `Screen`, `Root()` | Screen navigation (back stack) and role-based home screen |
+| `MainActivity.kt` | `Nav`, `Nav.Saver`, `Screen`, `Root()` | Screen navigation (back stack, saved across activity recreation) and role-based home screen |
 | `data/Models.kt` | `Complaint`, `Status`, `TimelineEvent`, `Role`, `Session` | Data model + JSON conversion (`toJson()`, `fromJson()`) |
 | `data/ReferenceData.kt` | `ReferenceData`, `LocationPath`, `pathOf()`, `allLocalities()` | Loads the location tree, departments, categories, SLA days, escalation levels, safety keywords |
 | `data/ComplaintRepository.kt` | `add()`, `update()`, `newId()`, `refreshSla()`, `resetDemo()` | Stores complaints (`complaints.json`); applies escalation; seeds demo data |
@@ -191,8 +219,12 @@ UI (Compose screens) ──► Domain engines (routing, SLA, duplicates) ──�
 | | `distanceMeters()` (Haversine), `nearestLocality()` | GPS → nearest locality |
 | | `DemoClock` | Time offset used to demonstrate escalation |
 | `ml/TextClassifier.kt` | `classify()`, `vectorize()` | Pure-Kotlin TF-IDF + Logistic Regression inference |
-| `ml/ImageClassifier.kt` | `classify(bitmap)` | ONNX Runtime inference with ImageNet normalisation |
-| `ml/AiAnalyzer.kt` | `analyze()`, `checkAfterPhoto()` | Combines both models; severity rules; after-photo verification |
+| `ml/ImageClassifier.kt` | `classify(bitmap)` | ONNX Runtime inference with ImageNet normalisation; averages the photo and its mirror image |
+| `ml/AiAnalyzer.kt` | `analyze()`, `quickPhotoGuess()`, `checkAfterPhoto()` | Combines both models; severity rules; "no civic problem visible" flag; after-photo verification |
+| `ui/components/CameraCapture.kt` | `CameraCaptureDialog` | Full-screen in-app CameraX camera (flash, switch camera, framing guide) |
+| `ui/components/PhotoInput.kt` | `PhotoInput` | Camera permission, in-app camera, fallback to the system camera app, gallery picker, preview with Retake/Change/Remove |
+| `ui/components/Components.kt` | `AppScaffold`, `SectionCard`, `CategoryTile`, `StepIndicator`, `ConfidenceRow`, `StatTile`, … | Shared design system (gradient header, cards, pills, tiles) |
+| `ui/theme/Theme.kt` | `CivicFixTheme`, `categoryColor()` | Colours (light + dark), typography, shapes, one accent colour per category |
 | `util/Utils.kt` | `Photos.loadBitmap()` (EXIF-aware), `Photos.importUri()`, `Gps.current()`, `Notifier.notify()` | Photo storage, GPS, notifications |
 | `ui/screens/ReportWizardScreen.kt` | `ReportWizardScreen` | 4-step reporting wizard: Location → Evidence → Category & routing → Review |
 | `ui/screens/ComplaintDetailScreen.kt` | `OfficerActions`, `CitizenVerification` | Tracking, before/after evidence, officer workflow, citizen verification |
@@ -224,14 +256,17 @@ Escalation: **L1** when overdue → Executive Engineer / Zonal Officer; **L2** a
 
 | # | Dataset | Used for | Source | Notes |
 |---|---|---|---|---|
-| 1 | **Pothole Detection Dataset** (A. Kumar) | Pothole / road damage vs. normal road ("other") | [kaggle.com/datasets/atulyakumar98/pothole-detection-dataset](https://www.kaggle.com/datasets/atulyakumar98/pothole-detection-dataset) | ~330 labelled road images (`normal/`, `potholes/`) |
-| 2 | **Road Issues Detection Dataset** | Potholes, damaged roads, garbage/littering, broken road signs | [kaggle.com/datasets/programmerrdai/road-issues-detection-dataset](https://www.kaggle.com/datasets/programmerrdai/road-issues-detection-dataset) | Compiled from several sources |
-| 3 | **Street-Light Dataset** (Team16Project) | Streetlight photos (functional / non-functional), Indian streets (Chennai) | [github.com/Team16Project/Street-Light-Dataset](https://github.com/Team16Project/Street-Light-Dataset) ([paper, Data in Brief](https://www.sciencedirect.com/science/article/pii/S2352340922008630)) | 800+ images |
-| 4 | **TACO – Trash Annotations in Context** | Garbage / litter in real environments | [tacodataset.org](http://tacodataset.org/), [github.com/pedropro/TACO](https://github.com/pedropro/TACO) | Downloaded manually with TACO's own script |
-| 5 | **Stable Diffusion synthetic images** (generated by us) | All 8 classes, mainly water leakage, drainage, road blockage, damaged infrastructure | Generated by `02_generate_synthetic_images.py` with `stabilityai/sd-turbo` | Prompts and seeds logged for reproducibility |
-| 6 | **CivicFix complaint-text corpus** (generated by us) | Text category + severity model | `ml/data/text/civic_complaints.csv` | 12,000 rows, English + Hinglish |
-| 7 | **Hand-written evaluation set** (written by us) | Honest test of the text model | `ml/data/text/handwritten_eval.csv` | 30 rows, never used for training |
-| 8 | ImageNet (via pretrained weights) | Starting point for MobileNetV3 | torchvision | Transfer learning |
+| 1 | **Pothole Detection Dataset** (A. Kumar) | Pothole / road damage vs. normal road ("other") | [kaggle.com/datasets/atulyakumar98/pothole-detection-dataset](https://www.kaggle.com/datasets/atulyakumar98/pothole-detection-dataset) | 681 images (`normal/`, `potholes/`) |
+| 2 | **Road Issues Detection Dataset** | Potholes, damaged roads, garbage/littering, broken road signs, vandalism, illegal parking | [kaggle.com/datasets/programmerrdai/road-issues-detection-dataset](https://www.kaggle.com/datasets/programmerrdai/road-issues-detection-dataset) | 9,660 images; capped per class (1,500 potholes, 1,500 garbage, 900 signs + vandalism) |
+| 3 | **Street-Light Dataset** (Team16Project) | Streetlight photos (functional / non-functional), Indian streets (Chennai) | [github.com/Team16Project/Street-Light-Dataset](https://github.com/Team16Project/Street-Light-Dataset) ([paper, Data in Brief](https://www.sciencedirect.com/science/article/pii/S2352340922008630)) | 1,531 images |
+| 4 | **Wikimedia Commons** | All classes, especially water leakage, drainage, road blockage, damaged infrastructure | [commons.wikimedia.org](https://commons.wikimedia.org/) categories + search (`01b_collect_web_images.py`) | CC / public-domain; licence + author per photo in `attribution.csv` |
+| 5 | **Openverse** | Same as above | [openverse.org](https://openverse.org/) (Creative Commons search, mostly Flickr) | CC-licensed; licence + author per photo in `attribution.csv` |
+| 6 | **OpenAI CLIP ViT-L/14** (pretrained, via open_clip) | Cleaning labels, removing junk and duplicates | [github.com/mlfoundations/open_clip](https://github.com/mlfoundations/open_clip) | Not trained further; used zero-shot |
+| 7 | **TACO – Trash Annotations in Context** (optional) | Garbage / litter in real environments | [tacodataset.org](http://tacodataset.org/), [github.com/pedropro/TACO](https://github.com/pedropro/TACO) | Downloaded manually with TACO's own script; not used in the bundled model |
+| 8 | **Stable Diffusion synthetic images** (optional) | Rare classes | `02_generate_synthetic_images.py` with `stabilityai/sd-turbo` | Not used in the bundled model |
+| 9 | **CivicFix complaint-text corpus** (generated by us) | Text category + severity model | `ml/data/text/civic_complaints.csv` | 12,000 rows, English + Hinglish |
+| 10 | **Hand-written evaluation set** (written by us) | Honest test of the text model | `ml/data/text/handwritten_eval.csv` | 30 rows, never used for training |
+| 11 | ImageNet (via pretrained weights) | Starting point for MobileNetV3 | torchvision | Transfer learning |
 
 Check each dataset's licence before publishing results. Kaggle and GitHub datasets carry their own licences.
 
@@ -245,25 +280,27 @@ Check each dataset's licence before publishing results. Kaggle and GitHub datase
 | Android UI | Jetpack Compose + Material 3 | BOM 2024.09.02 | Declarative UI |
 | Build | Gradle / Android Gradle Plugin | 8.9 / 8.5.2 | Builds the APK |
 | On-device photo AI | ONNX Runtime Android | 1.19.2 | Runs the trained MobileNetV3 on the phone |
+| Camera | AndroidX CameraX (camera2, lifecycle, view) | 1.3.4 | In-app camera |
 | Images | Coil (display), AndroidX ExifInterface (rotation) | 2.7.0 / 1.3.7 | Photo previews and correct orientation |
 | Location | Android `LocationManager` + `LocationManagerCompat` | AndroidX Core 1.13.1 | GPS without Google Play Services |
 | Storage | JSON files (`org.json`) in app storage | built-in | Simple offline persistence for the prototype |
 | Notifications | NotificationCompat | AndroidX | "Please verify" alerts |
 | ML language | Python | 3.10+ | Training pipeline |
 | Deep learning | PyTorch + torchvision (MobileNetV3-Large) | 2.x / 0.2x | Photo model training |
-| **Generative AI** | **Hugging Face diffusers + Stable Diffusion (SD-Turbo)** | latest | Synthetic training photos |
+| Data cleaning | open_clip (OpenAI CLIP ViT-L/14) | 3.x | Zero-shot label check + de-duplication |
+| Generative AI (optional) | Hugging Face diffusers + Stable Diffusion (SD-Turbo) | latest | Synthetic training photos |
 | Classical ML | scikit-learn (TfidfVectorizer, LogisticRegression) | 1.x | Text model |
 | Data | pandas, NumPy, Pillow | – | Data handling |
 | Model export | ONNX / onnxruntime | – | Phone-compatible model format |
-| Datasets | Kaggle API, git | – | Download datasets |
+| Datasets | kagglehub, git, Wikimedia Commons API, Openverse API | – | Download datasets |
 
 ---
 
 ## 9. Suggested demo script (5 minutes)
 
-1. **Login as Citizen** → *Report a problem* → press **GPS** (or pick Lucknow → Zone 1 → Ward 12 → Hazratganj).
-2. Take a photo, type *"Deep pothole near the school gate, two bikes fell yesterday"*. The **AI suggests Pothole / Road Damage, severity HIGH** (safety keyword "school"). Routing shows **Roads & Public Works, 3-day target**.
-3. The app **warns about a similar open complaint** in Hazratganj. Show "Support instead", or continue and **Submit**. Point out the complaint ID and timeline.
+1. **Login as Citizen** → *Report a problem* → press **GPS** (or pick Delhi → Central & New Delhi Zone → Ward 1 → Connaught Place).
+2. Take a photo of a pothole (the AI hint on the photo shows its guess straight away), type *"Deep pothole near the school gate, two bikes fell yesterday"*. The **AI suggests Pothole / Road Damage, severity HIGH** (safety keyword "school"). Routing shows **Roads & Public Works, 3-day target**.
+3. The app **warns about a similar open complaint** at Connaught Place. Show "Support instead", or continue and **Submit**. Point out the complaint ID and timeline.
 4. **Exit → login as Officer (Roads)** → open the complaint → **Assign → Start work → upload after-photo + action → Mark resolved**.
 5. **Exit → login as the same citizen** → "Is the problem actually fixed?" → **No** → the complaint is reopened and **escalated**.
 6. Open **🤖 → +3 days**, then open the **Supervisor** dashboard to see overdue and escalated complaints.
@@ -276,8 +313,9 @@ Check each dataset's licence before publishing results. Kaggle and GitHub datase
 - This is an **academic prototype**. There is no real government integration, and login is simulated. Data is stored **on the device only**, so one phone plays all roles in the demo. A real system would need a backend (for example Node.js/Flask + PostgreSQL, as in report section 4.4) with a REST API, replacing `ComplaintRepository`.
 - The location hierarchy and SLA values are **illustrative**.
 - The text model's training data is template-generated. Its real-world accuracy is best estimated by the hand-written test (96.7% category, 53.3% severity). **Severity** needs real labelled complaints to improve.
-- The photo model's accuracy depends on how many **real** photos you collect. Synthetic images help with rare classes but cannot fully replace real data. Always report the **real-photo test accuracy** printed by step 03.
-- The 84 MB debug APK is mostly ONNX Runtime native libraries for all CPU types. A release build with ABI splits would be much smaller.
+- The photo model reaches **84.5%** on held-out real photos, but **water leakage (44% recall) and drainage (62%)** are weaker because few public photos exist. Many training photos come from outside India (Wikimedia/Openverse). Real photos from your own city are the most effective improvement.
+- The test labels were checked by CLIP, the same tool that cleaned the training data, so the test set is "clean"; blurry or badly framed phone photos will score lower.
+- The 64 MB debug APK is mostly ONNX Runtime native libraries (arm64, armv7, x86_64). A release build with per-ABI splits would be much smaller.
 
 ## 11. Future work (from report section 5)
 Public civic map (OpenStreetMap), multilingual and voice reporting, image-based duplicate detection (photo similarity), object detection (bounding boxes) to measure pothole size for severity, and a web dashboard for departments.

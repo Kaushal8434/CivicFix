@@ -9,6 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.civicfix.app.data.Role
 import com.civicfix.app.data.Session
@@ -29,12 +31,40 @@ sealed interface Screen {
     data object ModelInfo : Screen
 }
 
-class Nav {
-    val stack = mutableStateListOf<Screen>(Screen.Home)
+class Nav(initial: List<Screen> = listOf(Screen.Home)) {
+    val stack = mutableStateListOf<Screen>().apply { addAll(initial) }
     val current get() = stack.last()
     fun go(s: Screen) { stack.add(s) }
     fun back() { if (stack.size > 1) stack.removeAt(stack.lastIndex) }
     fun replace(s: Screen) { back(); go(s) }
+
+    companion object {
+        /**
+         * Keeps the back stack when Android recreates the activity – e.g. after the
+         * camera or photo picker was open and the system reclaimed memory.
+         */
+        val Saver = listSaver<Nav, String>(
+            save = { nav -> nav.stack.map(::encode) },
+            restore = { saved -> Nav(saved.mapNotNull(::decode).ifEmpty { listOf(Screen.Home) }) },
+        )
+
+        private fun encode(s: Screen) = when (s) {
+            Screen.Home -> "home"
+            Screen.Report -> "report"
+            is Screen.Detail -> "detail:${s.id}"
+            Screen.Analytics -> "analytics"
+            Screen.ModelInfo -> "model"
+        }
+
+        private fun decode(s: String): Screen? = when {
+            s == "home" -> Screen.Home
+            s == "report" -> Screen.Report
+            s.startsWith("detail:") -> Screen.Detail(s.removePrefix("detail:"))
+            s == "analytics" -> Screen.Analytics
+            s == "model" -> Screen.ModelInfo
+            else -> null
+        }
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -48,7 +78,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun Root(app: CivicFixApp) {
     var session by remember { mutableStateOf(app.loadSession()) }
-    val nav = remember { Nav() }
+    val nav = rememberSaveable(saver = Nav.Saver) { Nav() }
     val onSession: (Session?) -> Unit = {
         app.saveSession(it); session = it
         nav.stack.clear(); nav.stack.add(Screen.Home)

@@ -12,6 +12,8 @@ data class AiResult(
     val safetyFlag: String?,
     val usedImage: Boolean,
     val usedText: Boolean,
+    /** The photo model is confident the photo shows no specific civic problem. */
+    val photoShowsNoIssue: Boolean = false,
 ) {
     val lowConfidence get() = confidence < AiAnalyzer.CONFIDENT
 
@@ -58,8 +60,13 @@ class AiAnalyzer(
             severity = "high"; sevConf = 1f
         }
         return AiResult(ranked[0].first, ranked[0].second, ranked.take(3), severity, sevConf, hit,
-            usedImage = imgP != null, usedText = txtP != null)
+            usedImage = imgP != null, usedText = txtP != null,
+            photoShowsNoIssue = (imgP?.get("other") ?: 0f) >= NO_ISSUE_THRESHOLD)
     }
+
+    /** Photo-only top guess, shown live on the evidence step right after a photo is taken. */
+    fun quickPhotoGuess(photo: Bitmap): Pair<String, Float>? =
+        image.classify(photo)?.maxByOrNull { it.value }?.let { it.key to it.value }
 
     /**
      * Resolution check (report section 4.2 "Verify"): if the after-work photo is still
@@ -80,5 +87,6 @@ class AiAnalyzer(
         const val IMAGE_WEIGHT = 0.65f
         const val CONFIDENT = 0.45f
         const val STILL_ISSUE_THRESHOLD = 0.6f
+        const val NO_ISSUE_THRESHOLD = 0.6f
     }
 }

@@ -51,13 +51,17 @@ PUBLIC_DATASETS = [
         "ref": "programmerrdai/road-issues-detection-dataset",
         "url": "https://www.kaggle.com/datasets/programmerrdai/road-issues-detection-dataset",
         "rules": [
+            ("mixed", None),
             ("pothole", "pothole_road_damage"),
-            ("damaged road", "pothole_road_damage"),
             ("damaged_road", "pothole_road_damage"),
             ("garbage", "garbage"),
             ("litter", "garbage"),
             ("sign", "damaged_infrastructure"),
+            ("vandalism", "damaged_infrastructure"),
+            ("parking", "road_blockage"),
         ],
+        # The big classes are capped so they do not drown out the rarer ones.
+        "cap": {"pothole_road_damage": 1500, "damaged_infrastructure": 900, "garbage": 1500},
     },
     {
         "name": "street-light-dataset",
@@ -74,6 +78,68 @@ PUBLIC_DATASETS = [
         "rules": [("", "garbage")],
     },
 ]
+
+# ---------------------------------------------------------------------------
+# Openly-licensed web photos (Wikimedia Commons + Openverse), collected by
+# 01b_collect_web_images.py.  Search results are noisy, so every image is
+# checked by CLIP in 01c_clean_dataset.py before it is used for training.
+#   "commons_cats":  Wikimedia Commons categories (walked 1 level deep)
+#   "queries":       free-text searches sent to Commons and Openverse
+# ---------------------------------------------------------------------------
+WEB_DIR = DATA / "raw" / "web"
+
+WEB_SOURCES = {
+    "pothole_road_damage": {
+        "commons_cats": ["Potholes", "Potholes in India", "Road damage", "Damaged roads", "Cracked asphalt"],
+        "queries": ["pothole road", "pothole street India", "broken road surface", "damaged asphalt road", "road cracks potholes"],
+    },
+    "streetlight": {
+        "commons_cats": ["Street lights in India", "Broken street lights", "Street lights at night", "Lamp posts", "Damaged lamp posts"],
+        "queries": ["broken street light", "street light pole", "damaged lamp post", "street lamp night road", "fallen street light pole"],
+    },
+    "water_leakage": {
+        "commons_cats": ["Water leaks", "Water main breaks", "Burst pipes", "Leaking pipes", "Water pipes in India", "Fire hydrants spraying water"],
+        "queries": ["water main break street", "burst water pipe", "leaking water pipe", "water pipeline leak road", "broken water main flooding street", "leaking tap public",
+                    "water leak", "pipe leak", "water main burst", "leaking hydrant", "water gushing from pipe", "water pipeline burst India",
+                    "water wastage leaking pipeline", "broken pipe water spraying", "sinkhole water main"],
+    },
+    "drainage": {
+        "commons_cats": ["Open drains", "Open drains in India", "Sewage", "Sewage overflows", "Drains in India", "Clogged drains", "Waterlogging", "Flooded streets in India", "Storm drains"],
+        "queries": ["open drain India", "clogged drain garbage", "sewage overflow street", "overflowing manhole sewage", "waterlogged street", "blocked storm drain", "nala drain city"],
+    },
+    "garbage": {
+        "commons_cats": ["Garbage in India", "Litter in India", "Garbage dumps", "Illegal dumping", "Overflowing waste containers", "Litter on streets"],
+        "queries": ["garbage dump roadside", "overflowing garbage bin", "trash pile street", "illegal dumping", "litter street India"],
+    },
+    "road_blockage": {
+        "commons_cats": ["Fallen trees", "Fallen trees on roads", "Road closures", "Road blocks", "Landslides on roads", "Construction debris", "Traffic barriers"],
+        "queries": ["fallen tree blocking road", "tree fallen on street", "road blocked debris", "road closed barricade", "construction material blocking road", "landslide road blocked"],
+    },
+    "damaged_infrastructure": {
+        "commons_cats": ["Manholes without covers", "Broken manhole covers", "Damaged sidewalks", "Broken benches", "Damaged bridges", "Damaged railings", "Damaged road signs", "Broken footpaths"],
+        "queries": ["open manhole footpath", "broken manhole cover", "damaged footpath tiles", "broken railing bridge", "broken public bench", "damaged road divider", "collapsed footpath"],
+    },
+    "other": {
+        "commons_cats": ["Streets in India", "Roads in India", "Parks in India", "Clean streets", "Residential streets", "Markets in India"],
+        "queries": ["clean street", "city street daytime", "empty road", "residential colony street India", "public park", "market street India", "building facade", "people on street"],
+    },
+}
+
+# CLIP descriptions used to clean the data.  Several phrasings per class are
+# averaged.  Images that look like none of the civic classes are matched by
+# CLIP_JUNK and dropped (maps, documents, portraits, logos, ...).
+CLIP_PROMPTS = {
+    "pothole_road_damage": ["a photo of a pothole in a road", "a photo of a damaged, cracked asphalt road", "a photo of a broken road surface with holes"],
+    "streetlight": ["a photo of a street light pole", "a photo of a broken street lamp", "a photo of a street lamp on a road"],
+    "water_leakage": ["a photo of water leaking from a burst pipe", "a photo of a water main break flooding a street", "a photo of a leaking water pipe"],
+    "drainage": ["a photo of an open drain with dirty water", "a photo of sewage overflowing on a street", "a photo of a clogged drain", "a photo of a waterlogged flooded street"],
+    "garbage": ["a photo of a pile of garbage on the roadside", "a photo of an overflowing trash bin", "a photo of litter and waste dumped on a street"],
+    "road_blockage": ["a photo of a fallen tree blocking a road", "a photo of a road blocked by debris", "a photo of a road closed with barricades", "a photo of cars parked blocking a street"],
+    "damaged_infrastructure": ["a photo of an open manhole without a cover", "a photo of a broken footpath", "a photo of a damaged road sign", "a photo of broken public property", "a photo of a damaged railing or bench"],
+    "other": ["a photo of a clean city street", "a photo of a normal road in good condition", "a photo of a park", "a photo of a building", "a photo of people in a city"],
+}
+CLIP_JUNK = ["a map", "a document or text page", "a logo", "a portrait of a person", "a group of people at a ceremony",
+             "a diagram or chart", "a painting", "a screenshot", "an indoor room", "a close-up of a face"]
 
 # ---------------------------------------------------------------------------
 # Generative-AI prompts (Stable Diffusion).  Classes that have few or no public

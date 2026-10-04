@@ -13,3 +13,15 @@ venv/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# ML data and checkpoints (re-created by ml/01*.py and 03_train_image_classifier.py)
+ml/data/raw/*
+!ml/data/raw/web/
+ml/data/raw/web/*
+!ml/data/raw/web/attribution.csv
+ml/data/real/
+ml/data/clean/
+ml/data/synthetic/
+ml/output/*.pt
+ml/output/*.onnx
+ml/output/clean_log.txt

@@ -81,13 +81,13 @@ class ComplaintRepository(
         val now = clock.now()
         data class Seed(val loc: String, val cat: String, val sev: String, val desc: String, val ageDays: Int, val status: Status)
         val seeds = listOf(
-            Seed("lko-hazratganj", "pothole_road_damage", "high", "Deep pothole near the market crossing, two bikes skidded last week.", 6, Status.IN_PROGRESS),
-            Seed("lko-gomtinagar", "streetlight", "medium", "Three street lights not working in the lane behind the park.", 9, Status.ASSIGNED),
-            Seed("lko-aminabad", "garbage", "medium", "Garbage not lifted for 4 days, bad smell near shops.", 1, Status.NEW),
-            Seed("pat-kankarbagh", "drainage", "high", "Drain overflowing, dirty water entering houses after rain.", 2, Status.NEW),
-            Seed("pat-boring", "water_leakage", "medium", "Pipeline leaking on the main road, water wasted all day.", 12, Status.CLOSED),
-            Seed("del-lajpat", "damaged_infrastructure", "high", "Manhole cover missing on the footpath near the metro gate.", 4, Status.RESOLVED),
-            Seed("del-karolbagh", "road_blockage", "medium", "Construction material dumped on the road, traffic jam every evening.", 5, Status.ASSIGNED),
+            Seed("del-connaught", "pothole_road_damage", "high", "Deep pothole near Connaught Place inner circle, bikes skidding.", 6, Status.IN_PROGRESS),
+            Seed("har-cybercity", "streetlight", "medium", "Three street lights not working near DLF Cyber City phase 2.", 9, Status.ASSIGNED),
+            Seed("del-karolbagh", "garbage", "medium", "Garbage not lifted for 4 days near Karol Bagh market.", 1, Status.NEW),
+            Seed("har-sec15faridabad", "drainage", "high", "Drain overflowing, dirty water entering houses after rain.", 2, Status.NEW),
+            Seed("har-panchkula5", "water_leakage", "medium", "Pipeline leaking on the main road in Sector 5, water wasted.", 12, Status.CLOSED),
+            Seed("del-lajpat", "damaged_infrastructure", "high", "Manhole cover missing on the footpath near Lajpat Nagar metro gate.", 4, Status.RESOLVED),
+            Seed("har-modeltownkarnal", "road_blockage", "medium", "Construction material dumped on the road, traffic jam every evening.", 5, Status.ASSIGNED),
         )
         val list = seeds.map { s ->
             val path = ref.pathOf(s.loc)!!
